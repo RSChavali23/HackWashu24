@@ -11,13 +11,17 @@ def get_db_connection():
     db = client["Cluster0"]
     return db
 
-def save_clothes(type, size, color):
-    db = get_db_connection()
+def save_clothes(type, size, color, filename):
+    db = get_db_connection()  # Ensure this is defined to connect to MongoDB
     clothes_collection = db["clothes"]
+    
     clothes_data = {
         "type": type,
         "size": size,
-        "color": color
+        "color": color,
+        "photo_filename": filename  # Save the file name in the MongoDB entry
     }
+    
     clothes_collection.insert_one(clothes_data)
+
     #success("Clothes saved successfully!")

@@ -34,6 +34,7 @@ nav ul li a:hover {
 
 .App {
   text-align: center;
+  flex: 1;
 }
 
 .App-header {
