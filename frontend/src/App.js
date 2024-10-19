@@ -16,6 +16,8 @@ function App() {
       .then(data => setMessage(data.message));
   }, []);
 
+// salami
+
   return (
     <Router>
         <Navbar />
