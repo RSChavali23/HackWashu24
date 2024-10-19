@@ -1,0 +1,25 @@
+/* Ensure the body and html take up the full height */
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Ensure the root element takes up the full height */
+#root {
+  width: 100%;
+  height: 100%;
+}
+
+/* LidarModel.css */
+.full-screen-canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: auto;
+  overflow: hidden;
+  z-index: 0; /* Ensure it is on top of other elements */
+}

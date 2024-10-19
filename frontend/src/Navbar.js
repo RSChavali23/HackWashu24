@@ -18,6 +18,12 @@ function Navbar({ toggleSidebar }) {
         <li className="cart-link">
           <button onClick={toggleSidebar}>Cart</button>
         </li>
+        <li>
+          <Link to="/test">Test</Link>
+        </li>
+        <li>
+          <Link to="/lidar">Lidar Model</Link> {/* Add this link */}
+        </li>
       </ul>
     </nav>
   );

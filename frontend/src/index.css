@@ -5,6 +5,11 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  height: 100%; /* Add this line */
+}
+
+html, #root {
+  height: 100%; /* Add this block */
 }
 
 code {

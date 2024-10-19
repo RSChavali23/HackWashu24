@@ -5,19 +5,16 @@ import Home from './Home';
 import About from './About';
 import Contact from './Contact';
 import Sidebar from './Sidebar';
-import LidarViewer from './lidarviewer';
+import LidarModel from './LidarModel'; // Import the LidarModel component
+
 import './App.css'; // Add this for overlay styling
+import Test from './Test';
 
 function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [isLidarVisible, setIsLidarVisible] = useState(false);
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
-  };
-
-  const toggleLidar = () => {
-    setIsLidarVisible(!isLidarVisible);
   };
 
   return (
@@ -26,12 +23,13 @@ function App() {
         <Navbar toggleSidebar={toggleSidebar} />
         <header className="App-header">
           <Sidebar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
-          <button onClick={toggleLidar}>Toggle 3D Viewer</button>
-          {isLidarVisible && <LidarViewer isVisible={isLidarVisible} lidarFilePath="\Poppet or Marionnettos glb.glb" />}
+          
           <Routes>
+            <Route path="/test" element={<Test />} />
             <Route path="/" element={<Home />} />
             <Route path="/about" element={<About />} />
             <Route path="/contact" element={<Contact />} />
+            <Route path="/lidar" element={<LidarModel />} /> {/* Add this route */}
           </Routes>
         </header>
       </div>
