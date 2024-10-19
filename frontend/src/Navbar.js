@@ -18,6 +18,12 @@ function Navbar() {
         <li>
           <Link to="/test">Test</Link>
         </li>
+        <li>
+          <Link to="/thrift">Thrift</Link>
+        </li>
+        <li>
+          <Link to="/upload">Upload</Link>
+        </li>
       </ul>
     </nav>
   );
