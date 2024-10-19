@@ -20,9 +20,9 @@ function App() {
     <Router>
         <Navbar />
         <Routes>
-          <Route exact path="/" component={Home} />
-          <Route path="/about" component={About} />
-          <Route path="/contact" component={Contact} />
+          <Route exact path="/" element={<Home />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/contact" element={<Contact />} />
         </Routes>
       <div className="App">
         <header className="App-header">
@@ -41,7 +41,7 @@ function App() {
           </a>
         </header>
 
-      </div>
+  </div>
     </Router>
   );
 }
