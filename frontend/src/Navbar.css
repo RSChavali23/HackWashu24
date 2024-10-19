@@ -1,0 +1,41 @@
+nav {
+    position: fixed; /* Make the navbar fixed at the top */
+    top: 0;
+    left: 0;
+    width: 100%;
+    background-color: #162447;
+    z-index: 1000; /* Ensure the navbar is always on top of other elements */
+    padding: 15px 0; /* Add padding for better spacing */
+  }
+  
+  nav ul {
+    list-style-type: none;
+    display: flex;
+    justify-content: center;
+    padding: 0;
+    margin: 0;
+  }
+  
+  nav ul li {
+    margin: 0 20px;
+  }
+  
+  nav ul li a {
+    color: #e43f5a;
+    text-decoration: none;
+    font-size: 18px;
+    transition: color 0.3s ease;
+  }
+  
+  nav ul li a:hover {
+    color: #1f4068;
+  }
+  
+  /* Add margin-top to content so it doesn't go under the navbar */
+  body {
+    margin: 0;
+    padding: 0;
+    padding-top: 70px; /* Adjust this value based on your navbar height */
+    font-family: 'Poppins', sans-serif;
+  }
+  
