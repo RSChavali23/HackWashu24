@@ -2,7 +2,16 @@ import sys
 import os
 import numpy as np
 from PIL import Image
+
+# Determine the absolute path to the FastSAM directory
+fastsam_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'FastSAM'))
+
+# Add FastSAM to sys.path if it's not already there
+if fastsam_path not in sys.path:
+    sys.path.insert(0, fastsam_path)
 from fastsam import FastSAM, FastSAMPrompt
+
+
 
 # Ensure we have the right number of arguments
 if len(sys.argv) != 3:
@@ -21,24 +30,37 @@ if not os.path.isfile(LOCAL_IMAGE_PATH):
 base_filename = os.path.splitext(os.path.basename(LOCAL_IMAGE_PATH))[0]
 
 # Define the output directory and ensure it exists
-output_dir = '/home/ec2-user/server/NotreCoutureServer/computer_vision/FastSAM/output'
+output_dir = './output'
 os.makedirs(output_dir, exist_ok=True)
 
 # Define dynamic mask filename
 mask_filename = f"{base_filename}_mask.png"
 mask_output_path = os.path.join(output_dir, mask_filename)
 
-model = FastSAM('/home/ec2-user/server/NotreCoutureServer/computer_vision/FastSAM/weights/FastSAM.pt')
-DEVICE = 'cpu'
+# Load the image and scale it down to a max of 1024px in any dimension
 image = Image.open(LOCAL_IMAGE_PATH)
+max_dim = 1024
+image.thumbnail((max_dim, max_dim))  # Scales the image in-place
+
+# Save the scaled image to a temporary path for processing by FastSAM
+scaled_image_path = os.path.join(output_dir, f"{base_filename}_scaled.jpg")
+image.save(scaled_image_path)
+
+# Load the FastSAM model
+model = FastSAM('./FastSAM/weights/FastSAM.pt')
+DEVICE = 'cpu'
+
+# Run the FastSAM model on the scaled image
 largestDim = max(image.size)
 largestDim = largestDim - (largestDim % 32)
 
-everything_results = model(LOCAL_IMAGE_PATH, device=DEVICE, retina_masks=True, imgsz=largestDim, conf=0.1, iou=0.8)
-prompt_process = FastSAMPrompt(LOCAL_IMAGE_PATH, everything_results, device=DEVICE)
+everything_results = model(scaled_image_path, device=DEVICE, retina_masks=True, imgsz=largestDim, conf=0.5, iou=0.5)
+prompt_process = FastSAMPrompt(scaled_image_path, everything_results, device=DEVICE)
 
+# Process the prompt and generate the mask
 ann = prompt_process.text_prompt(text=TEXT_PROMPT)
 
+# Plot the annotations and save the output image
 prompt_process.plot(annotations=ann, output_path=os.path.join(output_dir, 'mapping.jpg'))
 
 # Print the shape of the mask for debugging
