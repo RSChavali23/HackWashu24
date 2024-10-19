@@ -1,41 +1,59 @@
+/* Navbar.css */
 nav {
     position: fixed; /* Make the navbar fixed at the top */
     top: 0;
     left: 0;
     width: 100%;
-    background-color: #162447;
+    background-color: #333; /* Updated background color */
     z-index: 1000; /* Ensure the navbar is always on top of other elements */
-    padding: 15px 0; /* Add padding for better spacing */
-  }
+    padding: 1rem; /* Updated padding */
+    display: flex; /* Added flex display */
+    justify-content: space-between; /* Added space-between for justify-content */
+    align-items: center; /* Added align-items center */
+    color: white; /* Added color white */
+}
   
-  nav ul {
-    list-style-type: none;
+nav ul {
+    list-style: none; /* Updated list-style-type to list-style */
     display: flex;
+    gap: 1rem; /* Updated gap */
     justify-content: center;
     padding: 0;
     margin: 0;
-  }
+}
   
-  nav ul li {
+nav ul li {
+    display: inline; /* Added display inline */
     margin: 0 20px;
-  }
+}
   
-  nav ul li a {
+nav ul li a {
     color: #e43f5a;
     text-decoration: none;
     font-size: 18px;
     transition: color 0.3s ease;
-  }
+}
   
-  nav ul li a:hover {
+nav ul li a:hover {
     color: #1f4068;
-  }
+}
   
-  /* Add margin-top to content so it doesn't go under the navbar */
-  body {
+.cart-link {
+    margin-left: auto; /* Added cart-link class */
+}
+  
+button {
+    background: none; /* Added button styles */
+    border: none;
+    color: white;
+    cursor: pointer;
+    font-size: 1rem;
+}
+  
+/* Add margin-top to content so it doesn't go under the navbar */
+body {
     margin: 0;
     padding: 0;
     padding-top: 70px; /* Adjust this value based on your navbar height */
     font-family: 'Poppins', sans-serif;
-  }
-  
+}
