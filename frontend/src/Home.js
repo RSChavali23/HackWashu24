@@ -1,10 +1,12 @@
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
+// Import only GLTFLoader since we are not using OBJLoader
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 
 function Home() {
   const sceneRef = useRef();
   const rendererRef = useRef();
-  const cubeRef = useRef();
+  const modelRef = useRef();
   const isDragging = useRef(false);
   const previousMousePosition = useRef({ x: 0, y: 0 });
   
@@ -32,17 +34,26 @@ function Home() {
     directionalLight.position.set(5, 10, 7.5);
     scene.add(directionalLight);
 
-    // Add a simple cube as a placeholder for your 3D model
-    const geometry = new THREE.BoxGeometry();
-    const material = new THREE.MeshPhongMaterial({ color: 0x00ff00 });
-    const cube = new THREE.Mesh(geometry, material);
-    cube.position.y = 1;
-    scene.add(cube);
-    cubeRef.current = cube;
-
     camera.position.z = 5;
 
     const maxVerticalRotation = THREE.MathUtils.degToRad(25); // Convert degrees to radians
+
+    // Load the GLTF model
+    const gltfLoader = new GLTFLoader();
+    gltfLoader.load(
+      'frontend/assets/clothes (1)/scene.gltf', // Update this path based on your structure
+      (gltf) => {
+        const model = gltf.scene;
+        model.position.set(0, 0, 0); // Adjust position if necessary
+        model.scale.set(10, 10, 1); // Scale down if needed
+        scene.add(model);
+        modelRef.current = model; // Store the model reference
+      },
+      undefined,
+      (error) => {
+        console.error('An error occurred while loading the GLTF model:', error);
+      }
+    );
 
     // Mouse down event listener
     const onMouseDown = (event) => {
@@ -52,21 +63,19 @@ function Home() {
 
     // Mouse move event listener
     const onMouseMove = (event) => {
-      if (!isDragging.current) return;
+      if (!isDragging.current || !modelRef.current) return;
 
       const deltaMove = {
         x: event.clientX - previousMousePosition.current.x,
         y: event.clientY - previousMousePosition.current.y,
       };
 
-      // Update cube rotation based on mouse movement
-      if (cubeRef.current) {
-        cubeRef.current.rotation.y += deltaMove.x * 0.01; // Rotate around Y-axis
-        
-        // Lock vertical rotation between -25 and 25 degrees
-        cubeRef.current.rotation.x += deltaMove.y * 0.01; // Inverted: Rotate around X-axis
-        cubeRef.current.rotation.x = THREE.MathUtils.clamp(cubeRef.current.rotation.x, -maxVerticalRotation, maxVerticalRotation);
-      }
+      // Update model rotation based on mouse movement
+      modelRef.current.rotation.y += deltaMove.x * 0.01; // Rotate around Y-axis
+      modelRef.current.rotation.x += deltaMove.y * 0.01; // Inverted: Rotate around X-axis
+      
+      // Lock vertical rotation between -25 and 25 degrees
+      modelRef.current.rotation.x = THREE.MathUtils.clamp(modelRef.current.rotation.x, -maxVerticalRotation, maxVerticalRotation);
 
       previousMousePosition.current = { x: event.clientX, y: event.clientY };
     };
