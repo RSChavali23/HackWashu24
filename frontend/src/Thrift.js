@@ -8,11 +8,13 @@ import { OutlinePass } from 'three/examples/jsm/postprocessing/OutlinePass';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass';
 import { FXAAShader } from 'three/examples/jsm/shaders/FXAAShader';
 import gsap from 'gsap';
+import { Alert } from 'react-bootstrap';
+
 
 
 const VISIBLE_COUNT = 4; // Number of clothes visible at once
 
-function Thrift() {
+function Thrift({ addToCart }) {
     const [clothes, setClothes] = useState([]);
     const [loading, setLoading] = useState(true);
     const [windowStart, setWindowStart] = useState(0); // Start index of the current window
@@ -65,14 +67,13 @@ function Thrift() {
         return floor;
     };
 
-    const createWall = () => {
-        const wallWidth = 100;
-        const wallHeight = 50;
-        const wallGeometry = new THREE.PlaneGeometry(wallWidth, wallHeight);
+    // Adjusted createWall to accept position and rotation
+    const createWall = (width, height, position, rotation) => {
+        const wallGeometry = new THREE.PlaneGeometry(width, height);
         const wallMaterial = new THREE.MeshStandardMaterial({ color: 0xaaaaaa, metalness: 0.2, roughness: 0.8 });
         const wall = new THREE.Mesh(wallGeometry, wallMaterial);
-        wall.position.z = -30; // Position behind the rack
-        wall.position.y = 5; // Align with the rack height
+        wall.position.set(position.x, position.y, position.z);
+        wall.rotation.set(rotation.x, rotation.y, rotation.z);
         wall.receiveShadow = true; // Enable receiving shadows
         return wall;
     };
@@ -86,7 +87,7 @@ function Thrift() {
         sceneRef.current = scene;
 
         // Set a non-white background color
-        scene.background = new THREE.Color(0xD2B48C); // You can change this to any color you prefer
+        scene.background = new THREE.Color(0xbbbbbb); // You can change this to any color you prefer
 
         // Initialize camera
         const camera = new THREE.PerspectiveCamera(
@@ -196,9 +197,21 @@ function Thrift() {
         const floor = createFloor();
         scene.add(floor);
 
-        const wall = createWall();
-        scene.add(wall);
+       // Add four walls around the floor
+        // Add four walls around the floor
+        const wallHeight = 30;
+        const wallWidth = 100;
 
+        const backWall = createWall(wallWidth, wallHeight, { x: 0, y: 0, z: -50 }, { x: 0, y: 0, z: 0 });
+        const frontWall = createWall(wallWidth, wallHeight, { x: 0, y: 0, z: 50 }, { x: 0, y: Math.PI, z: 0 });
+        const leftWall = createWall(wallWidth, wallHeight, { x: -50, y: 0, z: 0 }, { x: 0, y: Math.PI / 2, z: 0 });
+        const rightWall = createWall(wallWidth, wallHeight, { x: 50, y: 0, z: 0 }, { x: 0, y: -Math.PI / 2, z: 0 });
+
+
+       scene.add(backWall);
+       scene.add(frontWall);
+       scene.add(leftWall);
+       scene.add(rightWall);
         // Add the group to the scene
         scene.add(groupRef.current);
 
@@ -235,9 +248,9 @@ function Thrift() {
         const onClick = (event) => {
             if (hoveredObject.current) {
                 const item = hoveredObject.current.userData.item;
-                // Perform your desired action here. For example:
-                alert(`You clicked on: ${item.type}`);
-                // Or navigate to a detail page, etc.
+                // Add the clicked item to the cart
+                addToCart(item);
+ 
             }
         };
 
