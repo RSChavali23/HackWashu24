@@ -13,9 +13,9 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 function App() {
   return (
     <Router>
-      <div className="App">
+      <div className="App" style={{width: '100%'}}>
         <Navbar />
-        <div className="App-header">
+        <div className="App-header" style={{width: '100%'}}>
           <Routes>
             <Route path="/test" element={<Test />} />
             <Route path="/" element={<Home />} />
