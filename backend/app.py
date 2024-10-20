@@ -5,6 +5,7 @@ import os
 current_dir = os.path.dirname(os.path.abspath(__file__))
 if current_dir not in sys.path:
     sys.path.insert(0, current_dir)
+from oauth_handler import get_valid_link
 import logging
 from flask import Flask, jsonify, request
 from flask_cors import CORS
@@ -162,9 +163,17 @@ def login():
 
         # Validate credentials
         if username == HARDCODED_USERNAME and password == HARDCODED_PASSWORD:
+            # Generate a new link when login is successful
+            try:
+                new_link = get_valid_link()
+                logger.info(f"Generated link: {new_link}")  # Log the generated link
+            except Exception as e:
+                logger.error(f"Error generating new link: {e}")
+                return jsonify({"error": "Failed to generate link"}), 500
+
             return jsonify({
                 "message": "Login successful!",
-                "link": "https://example.com/special-link"  # Link to be displayed on the About page
+                "link": new_link  # Send the dynamically generated link
             }), 200
         else:
             return jsonify({"error": "Invalid username or password"}), 401
@@ -172,6 +181,8 @@ def login():
     except Exception as e:
         logger.error(f"Error during login: {e}")
         return jsonify({"error": "Internal server error"}), 500
+
+
 
 
 @app.route('/api')
