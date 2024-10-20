@@ -137,51 +137,67 @@ function Thrift() {
         // Add the group to the scene
         scene.add(groupRef.current);
 
-        // Function to load each model
         clothes.forEach((item, index) => {
-          const modelPath = 'http://127.0.0.1:5000/3Doutput/' + item.photo_filename; // Ensure each item has a 'modelPath' property
-
-          loader.load(
-            modelPath,
-            (object) => {
-              object.traverse((child) => {
-                if (child.isMesh) {
-                  child.material.side = THREE.DoubleSide; // Set material to double-sided
-                  child.userData = { item }; // Attach item data for later use
+            const modelPath = 'http://127.0.0.1:5000/3Doutput/' + item.photo_filename;
+        
+            loader.load(
+              modelPath,
+              (object) => {
+                // Calculate bounding box to get the height of the object
+                const box = new THREE.Box3().setFromObject(object);
+                const objectHeight = box.max.y - box.min.y; // Height of the object
+                console.log('box:', box.max.y, box.min.y);
+                console.log('Height:', objectHeight);
+        
+                // Determine appropriate scale based on desired height (e.g., align with cylinder)
+                const desiredHeight = 10; // Set a desired height for the clothing models
+                const scaleFactor = desiredHeight / objectHeight; // Calculate the scale factor
+                object.scale.set(scaleFactor, scaleFactor, scaleFactor); // Scale the model
+        
+                // Traverse through the object meshes and make adjustments
+                object.traverse((child) => {
+                  if (child.isMesh) {
+                    child.material.side = THREE.DoubleSide;
+                    child.userData = { item }; // Attach item data for later use
+                  }
+                });
+        
+                // Calculate X position to avoid overlap
+                const positionX = (index % 5) * 5 - 10;
+        
+                // Position object so the top aligns with the center of the cylinder
+                const targetY = 0; // Y-coordinate of the cylinder's center
+                const adjustedHeight = (box.max.y - box.min.y) * scaleFactor; // Adjusted height after scaling
+                object.position.set(positionX, targetY - adjustedHeight / 2, -4);
+        
+                console.log('Y:', targetY - adjustedHeight / 2);  
+        
+                // Rotate the model if needed
+                object.rotateY(-Math.PI / 4);
+        
+                // Save the object reference and add it to the group
+                objectsRef.current.push(object);
+                groupRef.current.add(object);
+        
+                // Update loading count
+                loadedCount.current += 1;
+                if (loadedCount.current === clothes.length) {
+                  setLoading(false);
                 }
-              });
-              // Optional: Positioning each model based on index to avoid overlap
-
-              const positionX = (index % 5) * 5 - 10; // Initial positioning without offset
-              object.position.set(positionX, -5, -4);
-              object.rotateY(-Math.PI / 4); // Rotate the model if needed
-
-              // Optional: Scale the model
-              object.scale.set(0.05, 0.05, 0.05); // Adjust as needed
-
-              // Save the object reference
-              objectsRef.current.push(object);
-              groupRef.current.add(object);
-
-              // Update loading count
-              loadedCount.current += 1;
-              if (loadedCount.current === clothes.length) {
-                setLoading(false);
+              },
+              (xhr) => {
+                console.log(`${item.type} model ${(xhr.loaded / xhr.total) * 100}% loaded`);
+              },
+              (error) => {
+                console.error(`Error loading model ${modelPath}:`, error);
+                loadedCount.current += 1;
+                if (loadedCount.current === clothes.length) {
+                  setLoading(false);
+                }
               }
-            },
-            (xhr) => {
-              console.log(`${item.type} model ${(xhr.loaded / xhr.total) * 100}% loaded`);
-            },
-            (error) => {
-              console.error(`Error loading model ${modelPath}:`, error);
-              // Even if there's an error, consider the model as "loaded" to prevent indefinite loading
-              loadedCount.current += 1;
-              if (loadedCount.current === clothes.length) {
-                setLoading(false);
-              }
-            }
-          );
+            );
         });
+
 
         // Add OrbitControls for better interaction
         const controls = new OrbitControls(camera, renderer.domElement);

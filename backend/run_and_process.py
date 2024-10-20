@@ -58,3 +58,16 @@ try:
 except subprocess.CalledProcessError as e:
     print(f"process.py failed: {e}")
     sys.exit(1)
+
+# Step 4: Run the cv_square.py script to crop the transparent margins of the final image
+cv_square_command = [
+    "python", "cv_square.py", final_output_path
+]
+print(f"Running: {' '.join(cv_square_command)}")
+
+try:
+    subprocess.run(cv_square_command, check=True)
+    print(f"cv_square.py completed successfully. Cropped image saved at: {final_output_path}")
+except subprocess.CalledProcessError as e:
+    print(f"cv_square.py failed: {e}")
+    sys.exit(1)
