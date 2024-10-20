@@ -7,10 +7,7 @@ import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass';
 import { OutlinePass } from 'three/examples/jsm/postprocessing/OutlinePass';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass';
 import { FXAAShader } from 'three/examples/jsm/shaders/FXAAShader';
-import gsap from 'gsap';
-import { Alert } from 'react-bootstrap';
 import { VRButton } from 'three/examples/jsm/webxr/VRButton';
-
 
 const VISIBLE_COUNT = 4; // Number of clothes visible at once
 
@@ -22,6 +19,7 @@ function Thrift({ addToCart }) {
     const sceneRef = useRef(null);
     const objectsRef = useRef([]); // Currently loaded and visible objects
     const groupRef = useRef(new THREE.Group()); // Group to contain visible clothes
+    const cameraGroupRef = useRef(new THREE.Group()); // Group to hold the camera
 
     // For interactivity
     const raycaster = useRef(new THREE.Raycaster());
@@ -29,7 +27,6 @@ function Thrift({ addToCart }) {
     const hoveredObject = useRef(null);
     const composer = useRef(null);
     const outlinePass = useRef(null);
-    const cameraGroupRef = useRef(new THREE.Group());
 
     // Cache for loaded models to prevent reloading
     const modelCache = useRef({});
@@ -52,7 +49,7 @@ function Thrift({ addToCart }) {
             .then(data => {
                 setClothes(data.clothes);
                 setLoading(false);
-    
+
                 // Preload all models after data is fetched
                 data.clothes.forEach((_, index) => {
                     preloadModel(index);
@@ -67,7 +64,7 @@ function Thrift({ addToCart }) {
     const preloadModel = (index) => {
         const item = clothes[index];
         const modelPath = 'https://hackwashu24.onrender.com/3Doutput/' + item.photo_filename;
-    
+
         // Only preload if it's not already in the cache
         if (!modelCache.current[modelPath]) {
             const loader = new OBJLoader();
@@ -79,14 +76,14 @@ function Thrift({ addToCart }) {
                     const desiredHeight = 10;
                     const scaleFactor = desiredHeight / objectHeight;
                     object.scale.set(scaleFactor, scaleFactor, scaleFactor);
-    
+
                     object.traverse((child) => {
                         if (child.isMesh) {
                             child.material.side = THREE.DoubleSide;
                             child.userData = { item };
                         }
                     });
-    
+
                     // Cache the loaded model
                     modelCache.current[modelPath] = object.clone();
                 },
@@ -94,53 +91,6 @@ function Thrift({ addToCart }) {
                 (error) => console.error(`Error preloading model ${modelPath}:`, error)
             );
         }
-    };
-
-        // Inside your Thrift component, before the useEffect hooks
-    const createFloor = () => {
-        const floorSize = 100;
-        const floorGeometry = new THREE.PlaneGeometry(floorSize, floorSize);
-
-        const textureLoader = new THREE.TextureLoader();
-        const floorTexture = textureLoader.load('assets/floor.jpg'); // Replace with your texture path
-        floorTexture.wrapS = THREE.RepeatWrapping;
-        floorTexture.wrapT = THREE.RepeatWrapping;
-        floorTexture.repeat.set(100 / 10, 100 / 10); // Adjust repeat to scale texture based on wall dimensions
-
-        const floorMaterial = new THREE.MeshStandardMaterial({ 
-            map: floorTexture,
-            metalness: 0.2, 
-            roughness: 0.8 
-        });
-        const floor = new THREE.Mesh(floorGeometry, floorMaterial);
-        floor.rotation.x = -Math.PI / 2; // Rotate to lie flat
-        floor.position.y = -15; // Position below the rack
-        floor.receiveShadow = true; // Enable receiving shadows
-        return floor;
-    };
-
-    // Adjusted createWall to accept position and rotation and add texture
-    const createWall = (width, height, position, rotation) => {
-        const wallGeometry = new THREE.PlaneGeometry(width, height);
-        
-        // Load texture
-        const textureLoader = new THREE.TextureLoader();
-        const wallTexture = textureLoader.load('assets/wall.jpg'); // Replace with your texture path
-        wallTexture.wrapS = THREE.RepeatWrapping;
-        wallTexture.wrapT = THREE.RepeatWrapping;
-        wallTexture.repeat.set(width / 10, height / 10); // Adjust repeat to scale texture based on wall dimensions
-
-        const wallMaterial = new THREE.MeshStandardMaterial({ 
-            map: wallTexture,
-            metalness: 0.2, 
-            roughness: 0.8 
-        });
-        
-        const wall = new THREE.Mesh(wallGeometry, wallMaterial);
-        wall.position.set(position.x, position.y, position.z);
-        wall.rotation.set(rotation.x, rotation.y, rotation.z);
-        wall.receiveShadow = true; // Enable receiving shadows
-        return wall;
     };
 
     // Initialize Three.js scene, camera, renderer, lights, controls, and post-processing
@@ -161,7 +111,7 @@ function Thrift({ addToCart }) {
             0.1,
             1000
         );
-        camera.position.set(30, -2, 15); // Adjusted for better initial view
+        camera.position.set(0, 0, 0); // Reset camera position relative to the group
 
         // Create a group to hold the camera
         const cameraGroup = new THREE.Group();
@@ -169,36 +119,19 @@ function Thrift({ addToCart }) {
         scene.add(cameraGroup);
         cameraGroupRef.current = cameraGroup;
 
+        // Set initial position of the camera group
+        cameraGroup.position.set(30, -2, 15); // Adjust as needed to set the starting location
+
         // Initialize renderer
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(mountRef.current.clientWidth, mountRef.current.clientHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.shadowMap.enabled = true;
+        renderer.xr.enabled = true;
         mountRef.current.appendChild(renderer.domElement);
 
-        // Enable WebXR for VR rendering
-        renderer.xr.enabled = true;
-        renderer.xr.getCamera().position.copy( camera.position);
+        // Add VRButton to enable VR mode
         document.body.appendChild(VRButton.createButton(renderer));
-
-        // Detect VR user and place them in the center of the scene
-        renderer.xr.addEventListener('sessionstart', () => {
-            setIsVR(true);
-            
-            // Offset the reference space (moves user starting position)
-            const session = renderer.xr.getSession();
-            const refSpace = renderer.xr.getReferenceSpace();
-            const vrCamera = renderer.xr.getCamera(camera);
-            renderer.xr.getCamera().position.copy( camera.position);
-            
-        
-         
-           
-        });
-
-        renderer.xr.addEventListener('sessionend', () => {
-            setIsVR(false);
-        });
-
-
 
         // Initialize EffectComposer for post-processing (OutlinePass)
         composer.current = new EffectComposer(renderer);
@@ -263,6 +196,7 @@ function Thrift({ addToCart }) {
 
         // Add the cylinder to the scene
         scene.add(cylinder);
+
         // === Add the Vertical Cylinders ===
 
         // Define vertical cylinder parameters
@@ -291,12 +225,56 @@ function Thrift({ addToCart }) {
         scene.add(verticalCylinder1);
         scene.add(verticalCylinder2);
 
-            // === Add Floor and Wall ===
+        // === Add Floor and Walls ===
+
+        const createFloor = () => {
+            const floorSize = 100;
+            const floorGeometry = new THREE.PlaneGeometry(floorSize, floorSize);
+
+            const textureLoader = new THREE.TextureLoader();
+            const floorTexture = textureLoader.load('assets/floor.jpg'); // Replace with your texture path
+            floorTexture.wrapS = THREE.RepeatWrapping;
+            floorTexture.wrapT = THREE.RepeatWrapping;
+            floorTexture.repeat.set(100 / 10, 100 / 10); // Adjust repeat to scale texture based on wall dimensions
+
+            const floorMaterial = new THREE.MeshStandardMaterial({ 
+                map: floorTexture,
+                metalness: 0.2, 
+                roughness: 0.8 
+            });
+            const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+            floor.rotation.x = -Math.PI / 2; // Rotate to lie flat
+            floor.position.y = -15; // Position below the rack
+            floor.receiveShadow = true; // Enable receiving shadows
+            return floor;
+        };
+
+        const createWall = (width, height, position, rotation) => {
+            const wallGeometry = new THREE.PlaneGeometry(width, height);
+            
+            // Load texture
+            const textureLoader = new THREE.TextureLoader();
+            const wallTexture = textureLoader.load('assets/wall.jpg'); // Replace with your texture path
+            wallTexture.wrapS = THREE.RepeatWrapping;
+            wallTexture.wrapT = THREE.RepeatWrapping;
+            wallTexture.repeat.set(width / 10, height / 10); // Adjust repeat to scale texture based on wall dimensions
+
+            const wallMaterial = new THREE.MeshStandardMaterial({ 
+                map: wallTexture,
+                metalness: 0.2, 
+                roughness: 0.8 
+            });
+            
+            const wall = new THREE.Mesh(wallGeometry, wallMaterial);
+            wall.position.set(position.x, position.y, position.z);
+            wall.rotation.set(rotation.x, rotation.y, rotation.z);
+            wall.receiveShadow = true; // Enable receiving shadows
+            return wall;
+        };
 
         const floor = createFloor();
         scene.add(floor);
 
-       // Add four walls around the floor
         // Add four walls around the floor
         const wallHeight = 30;
         const wallWidth = 100;
@@ -306,16 +284,12 @@ function Thrift({ addToCart }) {
         const leftWall = createWall(wallWidth, wallHeight, { x: -50, y: 0, z: 0 }, { x: 0, y: Math.PI / 2, z: 0 });
         const rightWall = createWall(wallWidth, wallHeight, { x: 50, y: 0, z: 0 }, { x: 0, y: -Math.PI / 2, z: 0 });
 
+        scene.add(backWall);
+        scene.add(frontWall);
+        scene.add(leftWall);
+        scene.add(rightWall);
 
-       scene.add(backWall);
-       scene.add(frontWall);
-       scene.add(leftWall);
-       scene.add(rightWall);
-        // Add the group to the scene
-        scene.add(groupRef.current);
-
-  
-
+        // Add the group containing clothes to the scene
         scene.add(groupRef.current);
 
         // Add OrbitControls for non-VR interaction
@@ -367,18 +341,6 @@ function Thrift({ addToCart }) {
         const controller2 = renderer.xr.getController(1);
         scene.add(controller1);
         scene.add(controller2);
-
-        // If adding controller models
-        /*
-        const controllerModelFactory = new XRControllerModelFactory();
-
-        [controller1, controller2].forEach((controller) => {
-            controller.addEventListener('connected', (event) => {
-                const mesh = controllerModelFactory.createControllerModel(controller);
-                controller.add(mesh);
-            });
-        });
-        */
 
         // Function to handle controller input for movement
         const handleControllerInput = () => {
@@ -522,7 +484,6 @@ function Thrift({ addToCart }) {
 
     // Function to add models to the scene based on the current window
     const loadVisibleModels = async () => {
-     
         // Remove existing objects from the scene
         objectsRef.current.forEach(obj => {
             groupRef.current.remove(obj);
