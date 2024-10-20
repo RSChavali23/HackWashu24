@@ -27,8 +27,8 @@
     display: flex;
     justify-content: space-between;
     align-items: center; /* Align the items (links and cart button) vertically */
-    background-color: #f5f5dc; /* Beige background */
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+    background-color: transparent; /* Beige background */
+
   }
   
   /* Menu Items Styling */
@@ -167,3 +167,41 @@
     }
   }
   
+  /* Added some padding for cart items */
+.cart-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px;
+  border-bottom: 1px solid #ccc;
+}
+
+.cart-item button {
+  background-color: #ff4d4d; /* Red remove button */
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.cart-item button:hover {
+  background-color: #ff1a1a;
+}
+
+.cart-summary {
+  margin-top: 20px;
+}
+
+.checkout-button {
+  width: 100%;
+  padding: 10px;
+  background-color: #333;
+  color: white;
+  border: none;
+  cursor: pointer;
+  border-radius: 8px;
+}
+
+.checkout-button:hover {
+  background-color: #555;
+}

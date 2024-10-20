@@ -16,7 +16,30 @@ function Home() {
   useEffect(() => {
     // === 1. Scene, Camera, Renderer Setup ===
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xD2B48C); // Tan color
+    // Create a radial gradient background
+    const canvas = document.createElement('canvas');
+    canvas.width = 256;
+    canvas.height = 256;
+    const context = canvas.getContext('2d');
+
+    // Create radial gradient
+    const gradient = context.createRadialGradient(
+      canvas.width / 1, // X coordinate of the center
+      canvas.height / 2, // Y coordinate of the center
+      0, // Inner radius
+      canvas.width / 1, // X coordinate of the end circle
+      canvas.height / 2, // Y coordinate of the end circle
+      canvas.width / 4 // Outer radius
+    );
+    gradient.addColorStop(0, '#ffffff'); // Center color
+    gradient.addColorStop(1, '#aaaaaa'); // Outer color
+
+    context.fillStyle = gradient;
+    context.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Use the canvas as a texture
+    const texture = new THREE.CanvasTexture(canvas);
+    scene.background = texture;
 
     const camera = new THREE.PerspectiveCamera(
       75, // Field of view
@@ -57,22 +80,17 @@ function Home() {
     directionalLight.shadow.camera.far = 500;
     scene.add(directionalLight);
 
-    // === 4. Add Helpers (Grid and Axes) ===
-    const axesHelper = new THREE.AxesHelper(5);
-
-
-    const gridHelper = new THREE.GridHelper(10, 10); // 10x10 grid
 
 
     // === 5. Add Cube in the Center of the Scene ===
     const cubeGeometry = new THREE.BoxGeometry(1.25, 1.25, 1.25); // Create a cube with dimensions 1x1x1
     const cubeMaterial = new THREE.MeshStandardMaterial({
-      color: 0xaaaaaa, // Dark gray/black color
+      color: 0x62aedd, // Dark gray/black color
     });
     const cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
     cube.castShadow = true; // Enable shadows for the cube
     cube.receiveShadow = true; // The cube will also receive shadows
-    cube.position.set(-2, 0, -2); // Center the cube
+    cube.position.set(-0, 0, -2); // Center the cube
     scene.add(cube);
 
     // === 6. Set Up OrbitControls (Look from Above and Disable Rotation) ===
@@ -154,7 +172,7 @@ function Home() {
       <div
         ref={sceneRef}
         style={{
-          width: '100%',
+
           height: '40vh', // Allocate 40% of viewport height to the 3D scene
           margin: '0', // Remove default margin
         }}

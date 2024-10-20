@@ -26,10 +26,10 @@ body {
 nav {
   width: 100%; /* Full width */
   position: flex; /* Fix the navbar at the top */
-  top: 10; /* Stick to the top of the page */
+  top: 0; /* Stick to the top of the page */
   background-color: rgba(0, 0, 0, 0.8); /* Give it a background for visibility */
   z-index: 1000; /* Make sure it stays above other elements */
-  padding: 15px 0;
+  padding: 0 0;
 }
 
 nav ul {
@@ -68,7 +68,7 @@ nav ul li a:hover {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  margin-top: 100px; /* Push the content down to make room for the fixed navbar */
+  margin-top: 16px; /* Push the content down to make room for the fixed navbar */
 }
 
 .App-header {
@@ -78,9 +78,9 @@ nav ul li a:hover {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  background-color: #ffffff;
-  padding: 40px;
-  border-radius: 12px;
+  background-color: #dbd9d9;
+  padding: 8px;
+  border-radius: 0;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
 }
 
