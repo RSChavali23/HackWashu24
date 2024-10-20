@@ -4,7 +4,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 
 //hack-washu24.vercel.app
 //https://hackwashu24.onrender.com/'
-//
+//thrift3d-git-main-rahul-chavalis-projects-f65fea19.vercel.app
 
 function Home() {
   const sceneRef = useRef();
@@ -20,30 +20,8 @@ function Home() {
   useEffect(() => {
     // === 1. Scene, Camera, Renderer Setup ===
     const scene = new THREE.Scene();
-    // Create a radial gradient background
-    const canvas = document.createElement('canvas');
-    canvas.width = 256;
-    canvas.height = 256;
-    const context = canvas.getContext('2d');
 
-    // Create radial gradient
-    const gradient = context.createRadialGradient(
-      canvas.width / 1, // X coordinate of the center
-      canvas.height / 2, // Y coordinate of the center
-      0, // Inner radius
-      canvas.width / 1, // X coordinate of the end circle
-      canvas.height / 2, // Y coordinate of the end circle
-      canvas.width / 4 // Outer radius
-    );
-    gradient.addColorStop(0, '#ffffff'); // Center color
-    gradient.addColorStop(1, '#aaaaaa'); // Outer color
-
-    context.fillStyle = gradient;
-    context.fillRect(0, 0, canvas.width, canvas.height);
-
-    // Use the canvas as a texture
-    const texture = new THREE.CanvasTexture(canvas);
-    scene.background = texture;
+    scene.background = new THREE.Color(0xeae7dc); // Set background color to black
 
     const camera = new THREE.PerspectiveCamera(
       75, // Field of view

@@ -37,12 +37,22 @@ function Navbar({ cartItems, removeFromCart, balance }) {
               <Link to="/upload">Upload</Link>
             </li>
           </ul>
+
+        {/* Company Logo */}
+        <div className="logo">
+          <h1 style={{marginBottom: 0}}>THRIFT3D</h1>
+        </div>
+
           {/* Cart Button */}
           <button onClick={toggleCart} className="cart-button">
             <span className="cart-icon">🛒</span> Cart ({cartItems.length})
           </button>
         </div>
+
+
       </nav>
+
+
 
       {/* Cart Sidebar */}
       <div className={`cart-sidebar ${isCartOpen ? 'open' : ''}`}>

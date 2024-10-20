@@ -66,23 +66,25 @@ function About() {
       
       {/* Login Form */}
       <form onSubmit={handleLogin}>
-        <div>
-          <label>Username:</label>
+        <div className='type'>
+          <p>Username:</p>
           <input 
             type="text" 
             value={username} 
             onChange={(e) => setUsername(e.target.value)} 
             required 
+            style={{ marginBottom: '1rem' }}
           />
         </div>
         
-        <div>
-          <label>Password:</label>
+        <div className='type'>
+          <p>Password:</p>
           <input 
             type="password" 
             value={password} 
             onChange={(e) => setPassword(e.target.value)} 
             required 
+            style={{ marginBottom: '1rem' }}  // Add some space below the input field
           />
         </div>
         

@@ -59,7 +59,18 @@ function Thrift({ addToCart }) {
     const createFloor = () => {
         const floorSize = 100;
         const floorGeometry = new THREE.PlaneGeometry(floorSize, floorSize);
-        const floorMaterial = new THREE.MeshStandardMaterial({ color: 0x808080, metalness: 0.2, roughness: 0.8 });
+
+        const textureLoader = new THREE.TextureLoader();
+        const floorTexture = textureLoader.load('assets/floor.jpg'); // Replace with your texture path
+        floorTexture.wrapS = THREE.RepeatWrapping;
+        floorTexture.wrapT = THREE.RepeatWrapping;
+        floorTexture.repeat.set(100 / 10, 100 / 10); // Adjust repeat to scale texture based on wall dimensions
+
+        const floorMaterial = new THREE.MeshStandardMaterial({ 
+            map: floorTexture,
+            metalness: 0.2, 
+            roughness: 0.8 
+        });
         const floor = new THREE.Mesh(floorGeometry, floorMaterial);
         floor.rotation.x = -Math.PI / 2; // Rotate to lie flat
         floor.position.y = -15; // Position below the rack
@@ -67,10 +78,23 @@ function Thrift({ addToCart }) {
         return floor;
     };
 
-    // Adjusted createWall to accept position and rotation
+    // Adjusted createWall to accept position and rotation and add texture
     const createWall = (width, height, position, rotation) => {
         const wallGeometry = new THREE.PlaneGeometry(width, height);
-        const wallMaterial = new THREE.MeshStandardMaterial({ color: 0xaaaaaa, metalness: 0.2, roughness: 0.8 });
+        
+        // Load texture
+        const textureLoader = new THREE.TextureLoader();
+        const wallTexture = textureLoader.load('assets/wall.jpg'); // Replace with your texture path
+        wallTexture.wrapS = THREE.RepeatWrapping;
+        wallTexture.wrapT = THREE.RepeatWrapping;
+        wallTexture.repeat.set(width / 10, height / 10); // Adjust repeat to scale texture based on wall dimensions
+
+        const wallMaterial = new THREE.MeshStandardMaterial({ 
+            map: wallTexture,
+            metalness: 0.2, 
+            roughness: 0.8 
+        });
+        
         const wall = new THREE.Mesh(wallGeometry, wallMaterial);
         wall.position.set(position.x, position.y, position.z);
         wall.rotation.set(rotation.x, rotation.y, rotation.z);
@@ -87,7 +111,7 @@ function Thrift({ addToCart }) {
         sceneRef.current = scene;
 
         // Set a non-white background color
-        scene.background = new THREE.Color(0xbbbbbb); // You can change this to any color you prefer
+        scene.background = new THREE.Color(0xeae7dc); // You can change this to any color you prefer
 
         // Initialize camera
         const camera = new THREE.PerspectiveCamera(
@@ -134,7 +158,9 @@ function Thrift({ addToCart }) {
 
         const directionalLight = new THREE.DirectionalLight(0xffffff, 2.0);
         directionalLight.position.set(10, 10, 10);
+        directionalLight.target.position.set(0, 0, 0); // Point towards the origin
         scene.add(directionalLight);
+        scene.add(directionalLight.target); // Add the target to the scene
 
         // === Add the Horizontal Cylinder ===
 
@@ -459,14 +485,14 @@ function Thrift({ addToCart }) {
                         border: 'none',
                         cursor: 'pointer',
                         fontSize: '24px',
-                        padding: '10px',
-                        borderRadius: '50%',
+                        padding: '16px',
+                    
                         zIndex: 1,
                     }}
                     onClick={() => handleArrowClick('left')}
                     aria-label="Cycle Left"
                 >
-                    ◀
+                   <label style={{textAlign: 'center', transform: 'translateY(-2px)'}}>{'<'}</label>
                 </button>
                 <button
                     style={{
@@ -478,14 +504,17 @@ function Thrift({ addToCart }) {
                         border: 'none',
                         cursor: 'pointer',
                         fontSize: '24px',
-                        padding: '10px',
-                        borderRadius: '50%',
+                        padding: '16px',
+                        
                         zIndex: 1,
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        textAlign: 'center',
                     }}
                     onClick={() => handleArrowClick('right')}
                     aria-label="Cycle Right"
                 >
-                    ▶
+                    <label style={{textAlign: 'center', transform: 'translateY(-2px)'}}>{'>'}</label>
                 </button>
             </div>
         </div>

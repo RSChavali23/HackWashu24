@@ -5,18 +5,7 @@
     box-sizing: border-box;
   }
   
-  body {
-    font-family: 'Poppins', sans-serif;
-    background: linear-gradient(135deg, #f5f5dc, #f2e6d9); /* Light beige/cream gradient background */
-    color: #333333; /* Darker text color for better contrast with light background */
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    padding: 20px;
-  }
-  
+
   /* Navbar Styling */
   .navbar {
     position: fixed;
@@ -42,7 +31,7 @@
     list-style-type: none;
     display: flex;
     justify-content: flex-start; /* Align menu items to the left */
-    gap: 20px; /* Space between each list item */
+    gap: 0; /* Space between each list item */
     margin: 0;
     padding: 0;
   }
@@ -57,16 +46,23 @@
     color: #333333; /* All buttons and navbar text #333333 */
     text-decoration: none;
     font-size: 1.2rem;
-    padding: 10px;
-    background-color: #f5f5dc; /* Keep background beige */
-    border: 1px solid #333333; /* Add a dark border for contrast */
-    border-radius: 8px; /* Rounded corners */
+    padding: 10px 20px;
+    background-color: #eae7dc; /* Keep background beige */
+    border: 1px solid #8e8d8a40; /* Add a dark border for contrast */
   }
   
   .menu-items ul li a:hover {
     background-color: #333333; /* Hover effect: dark button */
     color: #ffffff; /* White text on hover */
     border: 1px solid #f5f5dc; /* Subtle hover effect on border */
+  }
+  
+  .logo {
+    margin-left: auto;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #333333c0; /* Logo text color #333333 */
+    text-align: center;
   }
   
   /* Cart Button */
@@ -80,7 +76,7 @@
     display: flex;
     align-items: center;
     color: white; /* White text for the cart button */
-    border-radius: 8px;
+    border-radius: 0;
   }
   
   .cart-button:hover {
@@ -130,7 +126,7 @@
     position: fixed;
     top: 0;
     left: 0;
-    width: 100vw;
+
     height: 100vh;
     background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
     z-index: 1000; /* Behind the cart sidebar */
