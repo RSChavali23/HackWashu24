@@ -486,13 +486,14 @@ function Thrift({ addToCart }) {
                         cursor: 'pointer',
                         fontSize: '24px',
                         padding: '16px',
+                        paddingBottom: '18px',
                     
                         zIndex: 1,
                     }}
                     onClick={() => handleArrowClick('left')}
                     aria-label="Cycle Left"
                 >
-                   <label style={{textAlign: 'center', transform: 'translateY(-2px)'}}>{'<'}</label>
+                   {'<'}
                 </button>
                 <button
                     style={{
@@ -505,6 +506,7 @@ function Thrift({ addToCart }) {
                         cursor: 'pointer',
                         fontSize: '24px',
                         padding: '16px',
+                        paddingBottom: '18px',
                         
                         zIndex: 1,
                         justifyContent: 'center',
@@ -514,7 +516,7 @@ function Thrift({ addToCart }) {
                     onClick={() => handleArrowClick('right')}
                     aria-label="Cycle Right"
                 >
-                    <label style={{textAlign: 'center', transform: 'translateY(-2px)'}}>{'>'}</label>
+                    {'>'}
                 </button>
             </div>
         </div>
