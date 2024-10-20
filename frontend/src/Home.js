@@ -1,8 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
-import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader';
-import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader';
 
 function Home() {
   const sceneRef = useRef();
@@ -26,8 +24,10 @@ function Home() {
       0.1, // Near clipping plane
       1000 // Far clipping plane
     );
-    camera.position.set(0, 2, 5); // Position the camera
-    camera.lookAt(new THREE.Vector3(0, 0, 0)); // Look at the origin
+
+    // === Adjust the Camera to look from above ===
+    camera.position.set(0, 5, 0); // Move the camera above the cube
+    camera.lookAt(0, 0, 0); // Look directly at the center
 
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
@@ -57,84 +57,42 @@ function Home() {
     directionalLight.shadow.camera.far = 500;
     scene.add(directionalLight);
 
-    // === 4. Add Helpers ===
+    // === 4. Add Helpers (Grid and Axes) ===
     const axesHelper = new THREE.AxesHelper(5);
-    scene.add(axesHelper);
 
-    const gridHelper = new THREE.GridHelper(10, 10);
-    scene.add(gridHelper);
 
-    // === 5. Load MTL and OBJ Files ===
-    const mtlLoader = new MTLLoader();
-    mtlLoader.setPath('/assets/clothes/source/'); // Path to MTL file
-    mtlLoader.load(
-      'clothes.mtl',
-      (materials) => {
-        materials.preload(); // Preload materials
+    const gridHelper = new THREE.GridHelper(10, 10); // 10x10 grid
 
-        const objLoader = new OBJLoader();
-        objLoader.setMaterials(materials); // Assign materials to OBJLoader
-        objLoader.setPath('/assets/clothes/source/'); // Path to OBJ file
-        objLoader.load(
-          'clothes.obj',
-          (object) => {
-            console.log('OBJ model loaded with MTL:', object);
 
-            // Traverse the object to enable shadows
-            object.traverse((child) => {
-              if (child instanceof THREE.Mesh) {
-                child.castShadow = true;
-                child.receiveShadow = true;
-              }
-            });
+    // === 5. Add Cube in the Center of the Scene ===
+    const cubeGeometry = new THREE.BoxGeometry(1.25, 1.25, 1.25); // Create a cube with dimensions 1x1x1
+    const cubeMaterial = new THREE.MeshStandardMaterial({
+      color: 0xaaaaaa, // Dark gray/black color
+    });
+    const cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
+    cube.castShadow = true; // Enable shadows for the cube
+    cube.receiveShadow = true; // The cube will also receive shadows
+    cube.position.set(-2, 0, -2); // Center the cube
+    scene.add(cube);
 
-            // === 6. Adjust Model Position ===
-            // Move the model slightly to the right and down
-            object.position.set(1, -1, 0); // x: 1 (right), y: -1 (down), z: 0
-
-            object.scale.set(0.01, 0.01, 0.01); // Adjust scale based on your model
-            scene.add(object);
-            modelRef.current = object;
-
-            setLoading(false); // Model has loaded
-          },
-          (xhr) => {
-            console.log(`${(xhr.loaded / xhr.total) * 100}% loaded`);
-          },
-          (error) => {
-            console.error('An error occurred while loading the OBJ model with MTL:', error);
-          }
-        );
-      },
-      (xhr) => {
-        console.log(`MTL Loading: ${(xhr.loaded / xhr.total) * 100}% loaded`);
-      },
-      (error) => {
-        console.error('An error occurred while loading the MTL file:', error);
-      }
-    );
-
-    // === 7. Set Up OrbitControls ===
+    // === 6. Set Up OrbitControls (Look from Above and Disable Rotation) ===
     const controls = new OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true; // Enable damping (inertia)
-    controls.dampingFactor = 0.25;
-    controls.screenSpacePanning = false;
-    controls.maxPolarAngle = Math.PI / 2; // Limit vertical rotation
+    controls.enableRotate = false; // Disable manual rotation since the cube will spin
+    controls.enableZoom = false;   // Disable zooming
+    controls.enablePan = false;    // Disable panning
+    controls.update(); // Ensure the controls are updated after setting the camera position
 
-    // === Enable Rotation, Disable Zoom and Pan ===
-    controls.enableRotate = true; // Enable rotation
-    controls.enableZoom = false;   // Disable zooming to prevent scrolling issues
-    controls.enablePan = false;    // Disable panning to maintain layout
-
-    // === 8. Animation Loop ===
+    // === 7. Animation Loop (Make the Cube Spin) ===
     const animate = () => {
       requestAnimationFrame(animate);
+      cube.rotation.x += 0.01; // Rotate cube around the X-axis
+      cube.rotation.y += 0.01; // Rotate cube around the Y-axis
       controls.update(); // Update controls for damping
       renderer.render(scene, camera);
     };
     animate();
 
-    // === 9. Cleanup on Unmount ===
+    // === 8. Cleanup on Unmount ===
     return () => {
       window.removeEventListener('resize', handleResize);
       if (sceneRef.current && rendererRef.current) {
@@ -148,12 +106,8 @@ function Home() {
       scene.traverse((object) => {
         if (!object.isMesh) return;
 
-        // Dispose geometry
         if (object.geometry) object.geometry.dispose();
-
-        // Dispose material
         if (object.material) {
-          // If the material is an array, iterate through it
           if (Array.isArray(object.material)) {
             object.material.forEach((material) => cleanMaterial(material));
           } else {
@@ -162,9 +116,7 @@ function Home() {
         }
       });
 
-      // Function to clean up materials and textures
       function cleanMaterial(material) {
-        // Dispose textures if they exist
         for (const key in material) {
           if (material.hasOwnProperty(key)) {
             const value = material[key];
@@ -174,12 +126,9 @@ function Home() {
             }
           }
         }
-
-        // Dispose the material itself
         material.dispose();
       }
 
-      // Dispose any remaining textures
       textureRefs.current.forEach((texture) => {
         texture.dispose();
       });
@@ -211,29 +160,26 @@ function Home() {
         }}
       />
 
+  
       {/* Text and Button Container */}
-      <div
-        
-      >
+      <div>
         <h1
           style={{
             margin: '0 0 10px 0',
             fontSize: '1.5em',
             textShadow: '1px 1px 2px rgba(0,0,0,0.5)', // Enhance text readability
-            pointerEvents: 'none', // Ensure text does not capture pointer events
           }}
         >
-          Welcome to Your 3D Clothing Store
+          Welcome to The One and Only 3D Clothing Store
         </h1>
         <p
           style={{
             margin: '0 0 10px 0',
             fontSize: '1em',
             textShadow: '1px 1px 2px rgba(0,0,0,0.5)', // Enhance text readability
-            pointerEvents: 'none', // Ensure text does not capture pointer events
           }}
         >
-          Explore our wardrobe in 3D.
+          Enhance your catalog by displaying in 3D.
         </p>
         <button
           onClick={handleThriftClick}
@@ -246,7 +192,6 @@ function Home() {
             border: 'none',
             backgroundColor: '#333',
             color: '#fff',
-            
           }}
         >
           Thrift Now
