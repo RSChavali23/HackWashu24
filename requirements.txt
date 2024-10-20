@@ -21,3 +21,4 @@ requests==2.32.3
 rich==13.9.2
 urllib3==2.2.3
 Werkzeug==3.0.4
+gunicorn
