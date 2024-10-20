@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 def get_db_connection():
     try:
         client = MongoClient(
-            os.getenv("MONGODB_URI"),
+            "mongodb+srv://rahulchavali1:Ec1rg2VHXzPdIFYX@cluster0.xiwbg.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0",
             tls=True,
             tlsAllowInvalidCertificates=True
         )
@@ -30,6 +30,7 @@ def get_db_connection():
 def save_clothes(type, size, color, filename):
     db = get_db_connection()  # Ensure this is defined to connect to MongoDB
     clothes_collection = db["clothes"]
+    filename = filename.rsplit('.', 1)[0]
     
     clothes_data = {
         "type": type,
@@ -41,3 +42,11 @@ def save_clothes(type, size, color, filename):
     clothes_collection.insert_one(clothes_data)
 
     #success("Clothes saved successfully!")
+
+
+def get_all_clothes():
+    db = get_db_connection()  # Ensure this is defined to connect to MongoDB
+    clothes_collection = db["clothes"]
+    
+    clothes = list(clothes_collection.find({}, {"_id": 0}))
+    return clothes
