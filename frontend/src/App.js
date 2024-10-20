@@ -5,6 +5,7 @@ import Home from './Home';
 import About from './About';
 import Thrift from './Thrift';
 import Upload from './Upload';
+import Vrtest from './Vrtest';
 import Contact from './Contact';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Test from './Test';
@@ -41,6 +42,7 @@ function App() {
             <Route path="/contact" element={<Contact />} />
             <Route path="/thrift" element={<Thrift addToCart={addToCart} />} />
             <Route path="/upload" element={<Upload />} />
+            <Route path="/vrtest" element={<Vrtest />} />
           </Routes>
         </div>
       </div>
