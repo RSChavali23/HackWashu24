@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 def get_db_connection():
     try:
         client = MongoClient(
-            os.getenv("MONGODB_URI"),
+            "mongodb+srv://rahulchavali1:Ec1rg2VHXzPdIFYX@cluster0.xiwbg.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0",
             tls=True,
             tlsAllowInvalidCertificates=True
         )

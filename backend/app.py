@@ -21,7 +21,7 @@ from flask_cors import CORS  # Import CORS
 from flask import send_from_directory
 
 app = Flask(__name__)
-CORS(app)
+
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -77,7 +77,9 @@ def upload_clothes():
             os.makedirs(UPLOAD_FOLDER)
 
         # Save the photo to the server
+        
         filename = secure_filename(photo.filename)
+        filename = os.path.splitext(filename)[0]
         local_image_path = os.path.join(UPLOAD_FOLDER, filename)
         photo.save(local_image_path)
 
@@ -141,6 +143,8 @@ def serve_threed_file(filename):
     except Exception as e:
         traceback.print_exc()
         return jsonify({"error": f"Error serving file: {str(e)}"}), 500
+    
+    
 @app.route('/login', methods=['POST'])
 def login():
     logger.info("Received login request")
