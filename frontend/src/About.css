@@ -1,0 +1,119 @@
+/* About.css */
+
+/* Overall Page Styling */
+.about-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #1b1b2f, #162447);
+  color: #ffffff;
+  font-family: 'Poppins', sans-serif;
+  padding: 20px;
+}
+
+/* Styling for the Balance Display */
+.balance-display {
+  position: absolute;
+  top: 150px;
+  left: 10px;
+  background-color: #333;
+  padding: 10px 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  color: #ffffff;
+}
+
+/* Header Styling */
+h1 {
+  font-size: 2.5rem;
+  color: #ffffff;
+  margin-bottom: 10px;
+}
+
+/* Description Text Styling */
+p {
+  font-size: 1.2rem;
+  color: #ffffff;
+  margin-bottom: 20px;
+  text-align: center;
+  max-width: 600px;
+}
+
+/* Login Form Styling */
+form {
+  background-color: #1b1b2f;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+  width: 300px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+form div {
+  margin-bottom: 15px;
+  width: 100%;
+}
+
+label {
+  font-size: 1rem;
+  color: #ffffff;
+}
+
+input {
+  width: 100%;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #444;
+  background-color: #444;
+  color: #ffffff;
+  font-size: 1rem;
+}
+
+input:focus {
+  outline: none;
+  border-color: #e43f5a;
+}
+
+/* Button Styling */
+button {
+  background-color: #e43f5a;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+button:hover {
+  background-color: #1b1b2f;
+  color: #e43f5a;
+}
+
+/* Message Styling */
+.message {
+  margin-top: 10px;
+  font-size: 1rem;
+  color: #e43f5a;
+}
+
+/* Special Link Styling */
+a {
+  display: inline-block;
+  margin-top: 10px;
+  color: white;
+  font-size: 1rem;
+  padding: 10px 20px;
+  background-color: #e43f5a;
+  border-radius: 8px;
+  text-decoration: none;
+}
+
+a:hover {
+  background-color: #1b1b2f;
+  color: #e43f5a;
+}

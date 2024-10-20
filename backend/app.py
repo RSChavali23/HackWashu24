@@ -1,5 +1,18 @@
+# app.py
+from datetime import time
+import sys
+import os
+current_dir = os.path.dirname(os.path.abspath(__file__))
+if current_dir not in sys.path:
+    sys.path.insert(0, current_dir)
+import logging
 from flask import Flask, jsonify, request
+from flask_cors import CORS
 from mongodb_handler import save_clothes, get_all_clothes  # Import the save_clothes and get_clothes functions
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 import os
 import subprocess
 from werkzeug.utils import secure_filename
@@ -8,7 +21,17 @@ from flask_cors import CORS  # Import CORS
 from flask import send_from_directory
 
 app = Flask(__name__)
-# Enable CORS for all routes
+CORS(app)
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Hardcoded credentials
+HARDCODED_ID = "7033710983"
+HARDCODED_USERNAME = "unique_test_customer_001"
+HARDCODED_PASSWORD = "securepassword123"  # Replace with a secure password
+
 CORS(app)
 
 UPLOAD_FOLDER = './uploads'
@@ -28,6 +51,7 @@ def get_clothes():
 
 @app.route('/uploadClothes', methods=['POST'])
 def upload_clothes():
+    logger.info("Received request to upload clothes")
     try:
         # Ensure there is a photo file in the request
         if 'photo' not in request.files:
@@ -39,7 +63,6 @@ def upload_clothes():
         # Validate the required form fields are in the request
         if not all(k in request.form for k in ("type", "size", "color")):
             return jsonify({"error": "Missing required fields"}), 400
-
         # Extract form fields
         type = request.form["type"]
         size = request.form["size"]
@@ -93,6 +116,7 @@ def upload_clothes():
         return jsonify({"message": "Clothes uploaded and 3D model generated successfully!", "3D_model": output_obj_path}), 201
 
     except Exception as e:
+        logger.error(f"Error uploading clothes: {e}")
         traceback.print_exc()
         return jsonify({"error": f"An unexpected error occurred: {str(e)}"}), 500
 
@@ -117,6 +141,34 @@ def serve_threed_file(filename):
     except Exception as e:
         traceback.print_exc()
         return jsonify({"error": f"Error serving file: {str(e)}"}), 500
+@app.route('/login', methods=['POST'])
+def login():
+    logger.info("Received login request")
+    try:
+        # Get username and password from the request
+        data = request.get_json()
+        logger.debug(f"Login Request Data: {data}")
+
+        # Check if username and password are present
+        if not all(k in data for k in ("username", "password")):
+            return jsonify({"error": "Missing required fields (username, password)"}), 400
+
+        username = data["username"]
+        password = data["password"]
+
+        # Validate credentials
+        if username == HARDCODED_USERNAME and password == HARDCODED_PASSWORD:
+            return jsonify({
+                "message": "Login successful!",
+                "link": "https://example.com/special-link"  # Link to be displayed on the About page
+            }), 200
+        else:
+            return jsonify({"error": "Invalid username or password"}), 401
+
+    except Exception as e:
+        logger.error(f"Error during login: {e}")
+        return jsonify({"error": "Internal server error"}), 500
+
 
 @app.route('/api')
 def hello_world():
@@ -124,4 +176,3 @@ def hello_world():
 
 if __name__ == '__main__':
     app.run(debug=True)
-
