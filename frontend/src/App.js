@@ -13,7 +13,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 function App() {
   return (
     <Router>
-      <div className="App" style={{width: '100%'}}>
+      <div className="App" style={{width: '100vw'}}>
         <Navbar />
         <div className="App-header" style={{width: '100%'}}>
           <Routes>
