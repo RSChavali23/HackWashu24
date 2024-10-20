@@ -169,20 +169,18 @@ function Thrift({ addToCart }) {
 
         // Enable WebXR for VR rendering
         renderer.xr.enabled = true;
+        renderer.xr.getCamera().position.copy( camera.position);
         document.body.appendChild(VRButton.createButton(renderer));
 
         // Detect VR user and place them in the center of the scene
         renderer.xr.addEventListener('sessionstart', () => {
             setIsVR(true);
-        
+            
             // Offset the reference space (moves user starting position)
             const session = renderer.xr.getSession();
             const refSpace = renderer.xr.getReferenceSpace();
             const vrCamera = renderer.xr.getCamera(camera);
-
-            renderer.xr.updateCamera(camera);
-
-            vrCamera.position.set(30, -2, 15);; // Center the user
+            renderer.xr.getCamera().position.copy( camera.position);
             
         
          
