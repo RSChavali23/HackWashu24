@@ -27,34 +27,17 @@ def get_db_connection():
         logger.error(f"Failed to connect to MongoDB: {e}")
         raise e
 
-def save_clothes(cloth_type, size, color):
-    try:
-        db = get_db_connection()
-        clothes_collection = db["clothes"]
-        clothes_data = {
-            "type": cloth_type,
-            "size": size,
-            "color": color,
-            "uploaded_at": time.time()
-        }
-        clothes_collection.insert_one(clothes_data)
-        logger.info("Clothes saved successfully!")
-    except Exception as e:
-        logger.error(f"Error saving clothes to MongoDB: {e}")
-        raise e
+def save_clothes(type, size, color, filename):
+    db = get_db_connection()  # Ensure this is defined to connect to MongoDB
+    clothes_collection = db["clothes"]
+    
+    clothes_data = {
+        "type": type,
+        "size": size,
+        "color": color,
+        "photo_filename": filename  # Save the file name in the MongoDB entry
+    }
+    
+    clothes_collection.insert_one(clothes_data)
 
-def save_info(user_id, username, created_date, password):
-    try:
-        db = get_db_connection()
-        user_collection = db["user"]
-        user_data = {
-            "id": user_id,
-            "username": username,
-            "createdDate": created_date,
-            "password": password  
-        }
-        user_collection.insert_one(user_data)
-        logger.info(f"User {username} saved successfully!")
-    except Exception as e:
-        logger.error(f"Error saving user info to MongoDB: {e}")
-        raise e
+    #success("Clothes saved successfully!")
