@@ -130,7 +130,7 @@ function Thrift({ addToCart }) {
 
         // Initialize renderer
         const renderer = new THREE.WebGLRenderer({ antialias: true });
-  
+        renderer.setSize(mountRef.current.clientWidth, mountRef.current.clientHeight);
         mountRef.current.appendChild(renderer.domElement);
 
         // Enable WebXR for VR rendering
@@ -149,10 +149,30 @@ function Thrift({ addToCart }) {
 
 
 
-
+        // Initialize EffectComposer for post-processing (OutlinePass)
+        composer.current = new EffectComposer(renderer);
+        composer.current.addPass(new RenderPass(scene, camera));
 
         // OutlinePass parameters: scene, camera, selected objects
+        outlinePass.current = new OutlinePass(
+            new THREE.Vector2(mountRef.current.clientWidth, mountRef.current.clientHeight),
+            scene,
+            camera
+        );
+        outlinePass.current.edgeStrength = 3.0;
+        outlinePass.current.edgeGlow = 0.0;
+        outlinePass.current.edgeThickness = 1.0;
+        outlinePass.current.visibleEdgeColor.set('#ffffff'); // Color of the outline
+        outlinePass.current.hiddenEdgeColor.set('#190a05'); // Color for hidden edges
+        composer.current.addPass(outlinePass.current);
 
+        // Add FXAA anti-aliasing
+        const fxaaPass = new ShaderPass(FXAAShader);
+        fxaaPass.uniforms['resolution'].value.set(
+            1 / mountRef.current.clientWidth,
+            1 / mountRef.current.clientHeight
+        );
+        composer.current.addPass(fxaaPass);
 
         // Add ambient and directional light
         const ambientLight = new THREE.AmbientLight(0xffffff, 1.5);
@@ -243,12 +263,49 @@ function Thrift({ addToCart }) {
         // Add the group to the scene
         scene.add(groupRef.current);
 
-    
+        // Add OrbitControls for better interaction
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true; // for smoother controls
+        controls.target.set(20, -5, 0);  // Point the controls at the origin of the scene
+        controls.update();
 
         // Handle window resize
+        const handleResize = () => {
+            if (mountRef.current) {
+                const width = mountRef.current.clientWidth;
+                const height = mountRef.current.clientHeight;
+                renderer.setSize(width, height);
+                composer.current.setSize(width, height);
+                camera.aspect = width / height;
+                camera.updateProjectionMatrix();
 
+                // Update FXAA Pass resolution
+                fxaaPass.uniforms['resolution'].value.set(1 / width, 1 / height);
+            }
+        };
+        window.addEventListener('resize', handleResize);
 
+        // Mouse move handler
+        const onMouseMove = (event) => {
+            const rect = renderer.domElement.getBoundingClientRect();
+            mouse.current.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+            mouse.current.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+        };
 
+        // Click handler
+        const onClick = (event) => {
+            if (hoveredObject.current) {
+                const item = hoveredObject.current.userData.item;
+                // Add the clicked item to the cart
+                addToCart(item);
+                alert(`Added ${item.type} to cart!`);
+ 
+            }
+        };
+
+        // Add event listeners
+        renderer.domElement.addEventListener('mousemove', onMouseMove);
+        renderer.domElement.addEventListener('click', onClick);
 
         // Animation loop
         const animate = () => {
@@ -275,10 +332,12 @@ function Thrift({ addToCart }) {
                 // }
         
                 // Update controls (if not in VR mode)
-     
+                if (!renderer.xr.isPresenting) {
+                    controls.update(); // Only required if controls.enableDamping = true
+                }
         
                 // Render the scene using the composer (with post-processing)
-               renderer.render(scene, camera);
+                renderer.render(scene, camera);
             });
         };
 
@@ -292,7 +351,13 @@ function Thrift({ addToCart }) {
                 mountRef.current.removeChild(renderer.domElement);
             }
 
-   
+            // Remove event listeners
+            window.removeEventListener('resize', handleResize);
+            if (renderer.domElement) {
+                renderer.domElement.removeEventListener('mousemove', onMouseMove);
+                renderer.domElement.removeEventListener('click', onClick);
+            }
+
             // Dispose of Three.js renderer to free up resources
             renderer.dispose();
         };
