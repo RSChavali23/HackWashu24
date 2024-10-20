@@ -7,6 +7,8 @@ import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass';
 import { OutlinePass } from 'three/examples/jsm/postprocessing/OutlinePass';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass';
 import { FXAAShader } from 'three/examples/jsm/shaders/FXAAShader';
+import gsap from 'gsap';
+
 
 const VISIBLE_COUNT = 4; // Number of clothes visible at once
 
@@ -50,6 +52,30 @@ function Thrift() {
                 setLoading(false); // Stop loading if fetch fails
             });
     }, []);
+
+        // Inside your Thrift component, before the useEffect hooks
+    const createFloor = () => {
+        const floorSize = 100;
+        const floorGeometry = new THREE.PlaneGeometry(floorSize, floorSize);
+        const floorMaterial = new THREE.MeshStandardMaterial({ color: 0x808080, metalness: 0.2, roughness: 0.8 });
+        const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+        floor.rotation.x = -Math.PI / 2; // Rotate to lie flat
+        floor.position.y = -15; // Position below the rack
+        floor.receiveShadow = true; // Enable receiving shadows
+        return floor;
+    };
+
+    const createWall = () => {
+        const wallWidth = 100;
+        const wallHeight = 50;
+        const wallGeometry = new THREE.PlaneGeometry(wallWidth, wallHeight);
+        const wallMaterial = new THREE.MeshStandardMaterial({ color: 0xaaaaaa, metalness: 0.2, roughness: 0.8 });
+        const wall = new THREE.Mesh(wallGeometry, wallMaterial);
+        wall.position.z = -30; // Position behind the rack
+        wall.position.y = 5; // Align with the rack height
+        wall.receiveShadow = true; // Enable receiving shadows
+        return wall;
+    };
 
     // Initialize Three.js scene, camera, renderer, lights, controls, and post-processing
     useEffect(() => {
@@ -141,7 +167,7 @@ function Thrift() {
 
         // Define vertical cylinder parameters
         const verticalCylinderRadius = 0.2; // Adjust as needed
-        const verticalCylinderHeight = 10; // Adjust as needed
+        const verticalCylinderHeight = 20; // Adjust as needed
         const verticalRadialSegments = 32; // Smoothness
 
         // Create vertical cylinder geometry and material
@@ -164,6 +190,14 @@ function Thrift() {
         // Add the vertical cylinders to the scene
         scene.add(verticalCylinder1);
         scene.add(verticalCylinder2);
+
+            // === Add Floor and Wall ===
+
+        const floor = createFloor();
+        scene.add(floor);
+
+        const wall = createWall();
+        scene.add(wall);
 
         // Add the group to the scene
         scene.add(groupRef.current);
