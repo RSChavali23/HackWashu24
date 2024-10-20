@@ -8,7 +8,7 @@ if current_dir not in sys.path:
 import logging
 from flask import Flask, jsonify, request
 from flask_cors import CORS
-from mongodb_handler import save_clothes, save_info
+from mongodb_handler import save_clothes
 from dotenv import load_dotenv
 
 # Load environment variables
