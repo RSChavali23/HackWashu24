@@ -111,8 +111,7 @@ function Thrift({ addToCart }) {
 
     // Initialize Three.js scene, camera, renderer, lights, controls, and post-processing
     useEffect(() => {
-        if (clothes.length === 0) return;
-
+        
         // Initialize scene
         const scene = new THREE.Scene();
         sceneRef.current = scene;
