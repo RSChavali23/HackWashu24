@@ -1,13 +1,35 @@
-body {
+/* Universal Styles */
+* {
   margin: 0;
   padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%; /* Ensure both html and body take full height of the screen */
+}
+
+body {
   font-family: 'Poppins', sans-serif;
   background: linear-gradient(135deg, #1b1b2f, #162447);
   color: #ffffff;
-  height: 100vh;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  justify-content: flex-start; /* Align content from the top */
   align-items: center;
+  padding: 0;
+  margin: 0;
+  min-height: 100vh; /* Ensure the body takes up the full viewport height */
+}
+
+/* Navigation Styles */
+nav {
+  width: 100%; /* Full width */
+  position: flex; /* Fix the navbar at the top */
+  top: 10; /* Stick to the top of the page */
+  background-color: rgba(0, 0, 0, 0.8); /* Give it a background for visibility */
+  z-index: 1000; /* Make sure it stays above other elements */
+  padding: 15px 0;
 }
 
 nav ul {
@@ -15,39 +37,58 @@ nav ul {
   display: flex;
   justify-content: center;
   padding: 0;
+  margin: 0;
 }
 
 nav ul li {
-  margin: 0 20px;
+  margin: 0 15px;
 }
 
 nav ul li a {
   color: white;
   text-decoration: none;
-  font-size: 20px;
+  font-size: 1.2rem;
+  font-weight: 500;
   transition: color 0.3s ease;
+  padding: 10px;
 }
 
 nav ul li a:hover {
   color: #e43f5a;
+  text-decoration: underline;
 }
 
+/* Add margin to the App container to ensure content starts below navbar */
 .App {
   text-align: center;
+  max-width: 1200px;
+  width: 100%;
   flex: 1;
-}
-
-.App-header {
-  min-height: 100vh;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  margin-top: 100px; /* Push the content down to make room for the fixed navbar */
 }
 
+.App-header {
+  width: 100%; /* Ensure the App-header takes full width */
+  min-height: calc(100vh - 80px); /* Calculate height based on the viewport minus some padding */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-color: #ffffff;
+  padding: 40px;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+/* Logo Animation */
 .App-logo {
-  animation: App-logo-spin infinite 20s linear;
-  height: 40vmin;
+  animation: App-logo-spin infinite 15s linear;
+  height: 25vmin;
+  margin-bottom: 20px;
   pointer-events: none;
 }
 
@@ -60,17 +101,43 @@ nav ul li a:hover {
   }
 }
 
+/* Button Styles */
 button {
-  background-color: #e43f5a;
+  background-color: #333333;
   color: white;
   border: none;
-  padding: 10px 20px;
-  border-radius: 5px;
+  padding: 12px 25px;
+  border-radius: 8px;
   cursor: pointer;
-  font-size: 16px;
+  font-size: 1rem;
+  font-weight: bold;
+  transition: background-color 0.3s, color 0.3s, transform 0.2s;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 button:hover {
-  background-color: #1b1b2f;
-  color: #e43f5a;
+  background-color: #333333;
+  color: #ffffff;
+  transform: translateY(-3px);
+}
+
+/* Responsive Media Queries */
+@media (max-width: 768px) {
+  .App-header {
+    padding: 20px;
+  }
+
+  button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .App-logo {
+    height: 35vmin;
+  }
+
+  button {
+    padding: 10px;
+  }
 }

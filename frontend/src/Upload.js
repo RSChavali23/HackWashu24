@@ -87,10 +87,10 @@ function Upload() {
 
 
   return (
-    <Container fluid className="min-vh-100 d-flex justify-content-center align-items-center" style={{ padding: 0 }}>
+    <Container fluid className="min-vh-90 d-flex justify-content-center align-items-center" style={{ padding: 0 }}>
       <Row className="w-100">
         <Col xs={12} className="px-5">
-          <h2 className="mb-4 text-center text-white">Upload Your Clothes</h2>
+          <h2 className="mb-4 text-center text-black">Upload Your Clothes</h2>
           {message && <Alert variant="success">{message}</Alert>}
           {error && <Alert variant="danger">{error}</Alert>}
           <Form onSubmit={handleSubmit}>
