@@ -43,7 +43,7 @@ function Thrift({ addToCart }) {
 
     // Fetch clothes data from the backend
     useEffect(() => {
-        fetch('http://localhost:5000/getClothes')
+        fetch('https://hackwashu24.onrender.com/getClothes')
             .then(response => response.json())
             .then(data => {
                 setClothes(data.clothes);
