@@ -181,6 +181,8 @@ function Thrift({ addToCart }) {
             const vrCamera = renderer.xr.getCamera(camera);
 
             renderer.xr.updateCamera(camera);
+
+            vrCamera.position.set(30, -2, 15);; // Center the user
             
         
          
