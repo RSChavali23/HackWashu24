@@ -17,7 +17,7 @@ function About() {
 
     try {
       console.log("Sending POST request to /login");
-      const response = await axios.post('/login', {
+      const response = await axios.post('https://hackwashu24.onrender.com//login', {
         username: username,
         password: password,
       });

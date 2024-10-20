@@ -311,7 +311,7 @@ function Thrift({ addToCart }) {
     const loadModel = (index) => {
         return new Promise((resolve, reject) => {
             const item = clothes[index];
-            const modelPath = 'http://127.0.0.1:5000/3Doutput/' + item.photo_filename;
+            const modelPath = 'https://hackwashu24.onrender.com/3Doutput/' + item.photo_filename;
 
             // Check if the model is already cached
             if (modelCache.current[modelPath]) {

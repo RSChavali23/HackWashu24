@@ -2,6 +2,9 @@ import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 
+//hack-washu24.vercel.app
+//https://hackwashu24.onrender.com/
+
 function Home() {
   const sceneRef = useRef();
   const rendererRef = useRef();
