@@ -385,11 +385,17 @@ function Thrift({ addToCart }) {
                     controls.update(); // Only required if controls.enableDamping = true
                 }
         
-                // Render the scene using the composer (with post-processing)
-                composer.current.render(scene, camera);
-                // renderer.render(scene, camera);
+                // Render the scene:
+                if (renderer.xr.isPresenting) {
+                    // Render normally for VR mode
+                    renderer.render(scene, camera);
+                } else {
+                    // Use post-processing effects when not in VR
+                    composer.current.render();
+                }
             });
         };
+        
 
 
         animate();
