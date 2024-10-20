@@ -171,7 +171,7 @@ function Thrift() {
         // Add OrbitControls for better interaction
         const controls = new OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true; // for smoother controls
-        controls.target.set(20, 0, 0);  // Point the controls at the origin of the scene
+        controls.target.set(20, -5, 0);  // Point the controls at the origin of the scene
         controls.update();
 
         // Handle window resize
