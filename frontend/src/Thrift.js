@@ -371,7 +371,7 @@ function Thrift() {
     };
 
     return (
-        <div style={{ color: 'white', backgroundColor: '#121212', minHeight: '100vh', width: '100%', position: 'relative' }}>
+        <div style={{ color: 'white', backgroundColor: '#121212', minHeight: '80vh', width: '100%', position: 'relative' }}>
 
             {/* Container for the 3D scene */}
             <div
