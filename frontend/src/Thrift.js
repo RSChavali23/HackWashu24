@@ -345,25 +345,25 @@ function Thrift({ addToCart }) {
         const animate = () => {
             renderer.setAnimationLoop(() => {
                 // Update Raycaster
-                raycaster.current.setFromCamera(mouse.current, camera);
-                const intersects = raycaster.current.intersectObjects(groupRef.current.children, true); // Only intersect with clothes
+                // raycaster.current.setFromCamera(mouse.current, camera);
+                // const intersects = raycaster.current.intersectObjects(groupRef.current.children, true); // Only intersect with clothes
         
-                if (intersects.length > 0) {
-                    // Find the first intersected object that has userData.item
-                    const intersected = intersects.find(intersect => intersect.object.userData.item);
-                    if (intersected) {
-                        if (hoveredObject.current !== intersected.object) {
-                            hoveredObject.current = intersected.object;
-                            outlinePass.current.selectedObjects = [intersected.object];
-                        }
-                    } else {
-                        hoveredObject.current = null;
-                        outlinePass.current.selectedObjects = [];
-                    }
-                } else {
-                    hoveredObject.current = null;
-                    outlinePass.current.selectedObjects = [];
-                }
+                // if (intersects.length > 0) {
+                //     // Find the first intersected object that has userData.item
+                //     const intersected = intersects.find(intersect => intersect.object.userData.item);
+                //     if (intersected) {
+                //         if (hoveredObject.current !== intersected.object) {
+                //             hoveredObject.current = intersected.object;
+                //             outlinePass.current.selectedObjects = [intersected.object];
+                //         }
+                //     } else {
+                //         hoveredObject.current = null;
+                //         outlinePass.current.selectedObjects = [];
+                //     }
+                // } else {
+                //     hoveredObject.current = null;
+                //     outlinePass.current.selectedObjects = [];
+                // }
         
                 // Update controls (if not in VR mode)
                 if (!renderer.xr.isPresenting) {
@@ -375,7 +375,7 @@ function Thrift({ addToCart }) {
             });
         };
 
-        
+
         animate();
 
         // Clean up on component unmount
