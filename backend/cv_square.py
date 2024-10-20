@@ -32,18 +32,14 @@ def process_image(image_path):
         # Crop the transparent margins
         cropped_img = crop_transparent_margins(img)
         
-        # Define the new filename by replacing '_cv.png' with '_cv_square.png'
-        directory, filename = os.path.split(image_path)
-        if '_cv.png' not in filename:
-            print(f"Error: The file '{filename}' does not contain '_cv.png' in its name.")
-            sys.exit(1)
         
-        new_filename = filename.replace('_cv.png', '_cv_square.png')
-        new_file_path = os.path.join(directory, new_filename)
+        directory, filename = os.path.split(image_path)
+
+        new_file_path = os.path.join(directory, filename)
         
         # Save the cropped image
         cropped_img.save(new_file_path)
-        print(f"Processed and saved: {new_filename}")
+        print(f"Processed and saved: {filename}")
 
 def main():
     # Ensure the script is called with exactly one argument
