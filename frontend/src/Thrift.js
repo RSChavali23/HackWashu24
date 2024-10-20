@@ -7,10 +7,9 @@ import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass';
 import { OutlinePass } from 'three/examples/jsm/postprocessing/OutlinePass';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass';
 import { FXAAShader } from 'three/examples/jsm/shaders/FXAAShader';
-import gsap from 'gsap';
-import { Alert } from 'react-bootstrap';
 import { VRButton } from 'three/examples/jsm/webxr/VRButton';
-
+// Optional: Import XRHandModelFactory if visualizing hands
+// import { XRHandModelFactory } from 'three/examples/jsm/webxr/XRHandModelFactory.js';
 
 const VISIBLE_COUNT = 4; // Number of clothes visible at once
 
@@ -29,7 +28,6 @@ function Thrift({ addToCart }) {
     const hoveredObject = useRef(null);
     const composer = useRef(null);
     const outlinePass = useRef(null);
-    const cameraGroupRef = useRef(new THREE.Group());
 
     // Cache for loaded models to prevent reloading
     const modelCache = useRef({});
@@ -52,7 +50,7 @@ function Thrift({ addToCart }) {
             .then(data => {
                 setClothes(data.clothes);
                 setLoading(false);
-    
+
                 // Preload all models after data is fetched
                 data.clothes.forEach((_, index) => {
                     preloadModel(index);
@@ -67,7 +65,7 @@ function Thrift({ addToCart }) {
     const preloadModel = (index) => {
         const item = clothes[index];
         const modelPath = 'https://hackwashu24.onrender.com/3Doutput/' + item.photo_filename;
-    
+
         // Only preload if it's not already in the cache
         if (!modelCache.current[modelPath]) {
             const loader = new OBJLoader();
@@ -79,14 +77,14 @@ function Thrift({ addToCart }) {
                     const desiredHeight = 10;
                     const scaleFactor = desiredHeight / objectHeight;
                     object.scale.set(scaleFactor, scaleFactor, scaleFactor);
-    
+
                     object.traverse((child) => {
                         if (child.isMesh) {
                             child.material.side = THREE.DoubleSide;
                             child.userData = { item };
                         }
                     });
-    
+
                     // Cache the loaded model
                     modelCache.current[modelPath] = object.clone();
                 },
@@ -96,7 +94,7 @@ function Thrift({ addToCart }) {
         }
     };
 
-        // Inside your Thrift component, before the useEffect hooks
+    // Helper function to create floor
     const createFloor = () => {
         const floorSize = 100;
         const floorGeometry = new THREE.PlaneGeometry(floorSize, floorSize);
@@ -116,10 +114,11 @@ function Thrift({ addToCart }) {
         floor.rotation.x = -Math.PI / 2; // Rotate to lie flat
         floor.position.y = -15; // Position below the rack
         floor.receiveShadow = true; // Enable receiving shadows
+        floor.name = 'floor'; // Name it for teleportation targeting
         return floor;
     };
 
-    // Adjusted createWall to accept position and rotation and add texture
+    // Helper function to create walls
     const createWall = (width, height, position, rotation) => {
         const wallGeometry = new THREE.PlaneGeometry(width, height);
         
@@ -163,42 +162,20 @@ function Thrift({ addToCart }) {
         );
         camera.position.set(30, -2, 15); // Adjusted for better initial view
 
-        // Create a group to hold the camera
+        // Create a group to hold the camera for movement
         const cameraGroup = new THREE.Group();
         cameraGroup.add(camera);
         scene.add(cameraGroup);
-        cameraGroupRef.current = cameraGroup;
 
         // Initialize renderer
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(mountRef.current.clientWidth, mountRef.current.clientHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
         mountRef.current.appendChild(renderer.domElement);
 
         // Enable WebXR for VR rendering
         renderer.xr.enabled = true;
-        renderer.xr.getCamera().position.copy( camera.position);
         document.body.appendChild(VRButton.createButton(renderer));
-
-        // Detect VR user and place them in the center of the scene
-        renderer.xr.addEventListener('sessionstart', () => {
-            setIsVR(true);
-            
-            // Offset the reference space (moves user starting position)
-            const session = renderer.xr.getSession();
-            const refSpace = renderer.xr.getReferenceSpace();
-            const vrCamera = renderer.xr.getCamera(camera);
-            renderer.xr.getCamera().position.copy( camera.position);
-            
-        
-         
-           
-        });
-
-        renderer.xr.addEventListener('sessionend', () => {
-            setIsVR(false);
-        });
-
-
 
         // Initialize EffectComposer for post-processing (OutlinePass)
         composer.current = new EffectComposer(renderer);
@@ -263,7 +240,8 @@ function Thrift({ addToCart }) {
 
         // Add the cylinder to the scene
         scene.add(cylinder);
-        // === Add the Vertical Cylinders ===
+
+        // === Add Vertical Cylinders ===
 
         // Define vertical cylinder parameters
         const verticalCylinderRadius = 0.2; // Adjust as needed
@@ -291,12 +269,11 @@ function Thrift({ addToCart }) {
         scene.add(verticalCylinder1);
         scene.add(verticalCylinder2);
 
-            // === Add Floor and Wall ===
+        // === Add Floor and Walls ===
 
         const floor = createFloor();
         scene.add(floor);
 
-       // Add four walls around the floor
         // Add four walls around the floor
         const wallHeight = 30;
         const wallWidth = 100;
@@ -306,16 +283,12 @@ function Thrift({ addToCart }) {
         const leftWall = createWall(wallWidth, wallHeight, { x: -50, y: 0, z: 0 }, { x: 0, y: Math.PI / 2, z: 0 });
         const rightWall = createWall(wallWidth, wallHeight, { x: 50, y: 0, z: 0 }, { x: 0, y: -Math.PI / 2, z: 0 });
 
+        scene.add(backWall);
+        scene.add(frontWall);
+        scene.add(leftWall);
+        scene.add(rightWall);
 
-       scene.add(backWall);
-       scene.add(frontWall);
-       scene.add(leftWall);
-       scene.add(rightWall);
         // Add the group to the scene
-        scene.add(groupRef.current);
-
-  
-
         scene.add(groupRef.current);
 
         // Add OrbitControls for non-VR interaction
@@ -360,43 +333,80 @@ function Thrift({ addToCart }) {
         renderer.domElement.addEventListener('mousemove', onMouseMove);
         renderer.domElement.addEventListener('click', onClick);
 
-        // === VR Camera Movement Setup ===
+        // === Hand Tracking Teleportation Setup ===
 
-        // Initialize controllers
-        const controller1 = renderer.xr.getController(0);
-        const controller2 = renderer.xr.getController(1);
-        scene.add(controller1);
-        scene.add(controller2);
+        // Initialize controllers (hands)
+        // Since we're using hand tracking, input sources will include hands
+        // We'll process them in the animation loop
 
-        // If adding controller models
-        /*
-        const controllerModelFactory = new XRControllerModelFactory();
+        // Function to get the index finger joint position and orientation
+        const getIndexFingerJoint = (hand) => {
+            // Implement retrieval of index finger joint (e.g., fingertip)
+            // This requires accessing the hand's joint positions
+            // Placeholder implementation:
+            const joint = hand.hand.get('index-finger-tip'); // Pseudocode
+            if (joint) {
+                return {
+                    position: new THREE.Vector3(joint.position.x, joint.position.y, joint.position.z),
+                    orientation: new THREE.Quaternion(joint.orientation.x, joint.orientation.y, joint.orientation.z, joint.orientation.w)
+                };
+            }
+            return null;
+        };
 
-        [controller1, controller2].forEach((controller) => {
-            controller.addEventListener('connected', (event) => {
-                const mesh = controllerModelFactory.createControllerModel(controller);
-                controller.add(mesh);
+        // Function to detect pointing gesture
+        const isPointingGesture = (hand) => {
+            // Implement gesture detection logic
+            // For example, check if index finger is extended and others are folded
+            // Placeholder implementation:
+            return true; // Replace with actual detection
+        };
+
+        // Teleportation logic
+        const handleTeleportation = (hands) => {
+            hands.forEach(hand => {
+                if (isPointingGesture(hand)) {
+                    const indexFinger = getIndexFingerJoint(hand);
+                    if (indexFinger) {
+                        const ray = createTeleportRay(indexFinger.position, indexFinger.orientation);
+                        // Define teleportable objects (e.g., floor)
+                        const teleportableObjects = [floor]; // Add other teleportable objects if needed
+                        const intersects = ray.intersectObjects(teleportableObjects, true);
+
+                        if (intersects.length > 0) {
+                            const teleportPoint = intersects[0].point;
+                            teleportCamera(teleportPoint);
+                        }
+                    }
+                }
             });
-        });
-        */
+        };
 
-        // Function to handle controller input for movement
-        const handleControllerInput = () => {
+        // Function to create a teleportation ray from the hand
+        const createTeleportRay = (handPosition, handQuaternion) => {
+            const teleportDirection = new THREE.Vector3(0, 0, -1).applyQuaternion(handQuaternion).normalize();
+            const teleportOrigin = handPosition.clone();
+            const teleportRay = new THREE.Raycaster(teleportOrigin, teleportDirection, 0, 100);
+            return teleportRay;
+        };
+
+        // Function to teleport the camera
+        const teleportCamera = (point) => {
+            cameraGroup.position.copy(point);
+        };
+
+        // Function to process hands and perform teleportation
+        const processHandsForTeleport = () => {
             const session = renderer.xr.getSession();
             if (!session) return;
 
-            const inputSources = session.inputSources;
-            inputSources.forEach((input) => {
-                if (input.gamepad) {
-                    const gp = input.gamepad;
-                    const axes = gp.axes;
+            const inputSources = session.inputSources.filter(input => input.hand);
+            if (inputSources.length === 0) return;
 
-                    // Example: axes[0] for left/right, axes[1] for forward/back
-                    const movementSpeed = 0.1;
-                    cameraGroup.position.x += axes[0] * movementSpeed;
-                    cameraGroup.position.z += axes[1] * movementSpeed;
-                }
-            });
+            // Extract hand data
+            const hands = inputSources.map(input => input); // Modify as needed to extract joint data
+
+            handleTeleportation(hands);
         };
 
         // VR session event listeners
@@ -413,7 +423,7 @@ function Thrift({ addToCart }) {
         // Animation loop
         const animate = () => {
             renderer.setAnimationLoop(() => {
-                // Update Raycaster
+                // Update Raycaster for mouse interaction
                 raycaster.current.setFromCamera(mouse.current, camera);
                 const intersects = raycaster.current.intersectObjects(groupRef.current.children, true); // Only intersect with clothes
 
@@ -435,8 +445,8 @@ function Thrift({ addToCart }) {
                 }
 
                 if (isVR) {
-                    // Handle VR movement inputs
-                    handleControllerInput();
+                    // Handle VR movement inputs via hand tracking
+                    processHandsForTeleport();
                 } else {
                     // Update OrbitControls when not in VR
                     controls.update();
@@ -522,7 +532,6 @@ function Thrift({ addToCart }) {
 
     // Function to add models to the scene based on the current window
     const loadVisibleModels = async () => {
-     
         // Remove existing objects from the scene
         objectsRef.current.forEach(obj => {
             groupRef.current.remove(obj);
