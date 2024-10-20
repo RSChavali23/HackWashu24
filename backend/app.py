@@ -78,6 +78,7 @@ def upload_clothes():
 
         # Save the photo to the server
         filename = secure_filename(photo.filename)
+        filename = os.path.splitext(filename)[0]  # Remove file extension
         local_image_path = os.path.join(UPLOAD_FOLDER, filename)
         photo.save(local_image_path)
 
