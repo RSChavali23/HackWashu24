@@ -107,7 +107,7 @@ function About() {
       {specialLink && (
         <div>
           <h2>Account Information</h2>
-          <a href={"https://connect2.finicity.com?customerId=7033710983&origin=url&partnerId=2445584660402&signature=e4ce3550817937e036d931a1a7e11ec44810ac930a544c621eb3c69559f75d2a&timestamp=1729441455212&ttl=1729448655212"} target="_blank" rel="noopener noreferrer">Account Configuration</a>
+          <a href={specialLink} target="_blank" rel="noopener noreferrer">Account Configuration</a>
         </div>
       )}
 
