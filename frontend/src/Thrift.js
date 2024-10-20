@@ -174,7 +174,22 @@ function Thrift({ addToCart }) {
         // Detect VR user and place them in the center of the scene
         renderer.xr.addEventListener('sessionstart', () => {
             setIsVR(true);
-            camera.position.set(30, -2, 15); // Place the VR user at the center of the scene
+        
+            // Offset the reference space (moves user starting position)
+            const session = renderer.xr.getSession();
+            const refSpace = renderer.xr.getReferenceSpace();
+        
+            const offset = new XRRigidTransform({
+                x: 15,    // Adjust X to shift left/right
+                y: -2,    // Adjust Y to shift height
+                z: 30     // Adjust Z to shift forward/backward
+            });
+        
+            const offsetRefSpace = refSpace.getOffsetReferenceSpace(offset);
+            session.updateRenderState({ baseLayer: session.renderState.baseLayer });
+            session.requestReferenceSpace('local').then((space) => {
+                renderer.xr.setReferenceSpace(offsetRefSpace);
+            });
         });
 
         renderer.xr.addEventListener('sessionend', () => {
@@ -345,25 +360,25 @@ function Thrift({ addToCart }) {
         const animate = () => {
             renderer.setAnimationLoop(() => {
                 // Update Raycaster
-                // raycaster.current.setFromCamera(mouse.current, camera);
-                // const intersects = raycaster.current.intersectObjects(groupRef.current.children, true); // Only intersect with clothes
+                raycaster.current.setFromCamera(mouse.current, camera);
+                const intersects = raycaster.current.intersectObjects(groupRef.current.children, true); // Only intersect with clothes
         
-                // if (intersects.length > 0) {
-                //     // Find the first intersected object that has userData.item
-                //     const intersected = intersects.find(intersect => intersect.object.userData.item);
-                //     if (intersected) {
-                //         if (hoveredObject.current !== intersected.object) {
-                //             hoveredObject.current = intersected.object;
-                //             outlinePass.current.selectedObjects = [intersected.object];
-                //         }
-                //     } else {
-                //         hoveredObject.current = null;
-                //         outlinePass.current.selectedObjects = [];
-                //     }
-                // } else {
-                //     hoveredObject.current = null;
-                //     outlinePass.current.selectedObjects = [];
-                // }
+                if (intersects.length > 0) {
+                    // Find the first intersected object that has userData.item
+                    const intersected = intersects.find(intersect => intersect.object.userData.item);
+                    if (intersected) {
+                        if (hoveredObject.current !== intersected.object) {
+                            hoveredObject.current = intersected.object;
+                            outlinePass.current.selectedObjects = [intersected.object];
+                        }
+                    } else {
+                        hoveredObject.current = null;
+                        outlinePass.current.selectedObjects = [];
+                    }
+                } else {
+                    hoveredObject.current = null;
+                    outlinePass.current.selectedObjects = [];
+                }
         
                 // Update controls (if not in VR mode)
                 if (!renderer.xr.isPresenting) {
@@ -371,8 +386,8 @@ function Thrift({ addToCart }) {
                 }
         
                 // Render the scene using the composer (with post-processing)
-                // composer.current.render();
-                renderer.render(scene, camera);
+                composer.current.render(scene, camera);
+                // renderer.render(scene, camera);
             });
         };
 

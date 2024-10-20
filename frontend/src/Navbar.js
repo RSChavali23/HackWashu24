@@ -36,9 +36,7 @@ function Navbar({ cartItems, removeFromCart, balance }) {
             <li>
               <Link to="/upload">Upload</Link>
             </li>
-            <li>
-              <Link to="/vrtest">vr</Link>
-            </li>
+         
           </ul>
 
         {/* Company Logo */}
