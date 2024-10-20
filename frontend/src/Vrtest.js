@@ -140,7 +140,7 @@ function Thrift({ addToCart }) {
         // Detect VR user and place them in the center of the scene
         renderer.xr.addEventListener('sessionstart', () => {
             setIsVR(true);
-            camera.position.set(0, 0, 0); // Place the VR user at the center of the scene
+            camera.position.set(30, -2, 15); // Place the VR user at the center of the scene
         });
 
         renderer.xr.addEventListener('sessionend', () => {
