@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
 function About() {
@@ -9,39 +9,48 @@ function About() {
   const [specialLink, setSpecialLink] = useState(null);
   const [balance, setBalance] = useState(null);  // State to hold balance
 
+  // Load balance from localStorage on component mount
+  useEffect(() => {
+    const storedBalance = localStorage.getItem('balance');
+    if (storedBalance) {
+      setBalance(storedBalance);
+    }
+  }, []);
+
   // Handler for login form submission
   const handleLogin = async (e) => {
     e.preventDefault();
-    setMessage('Success');
-    setSpecialLink("https://connect2.finicity.com?customerId=7033710983&origin=url&partnerId=2445584660402&signature=21a8e915453a161ee8e6938153c64a7ae88a332b0e8f73cff8f723c42696c647&timestamp=1729384525153&ttl=1729391725153");
+    setMessage(''); // Reset message
+    setSpecialLink(null); // Reset link before new login attempt
 
     try {
       console.log("Sending POST request to /login");
-      const response = await axios.post('https://hackwashu24.onrender.com//login', {
+      const response = await axios.post('https://hackwashu24.onrender.com/login', {
         username: username,
         password: password,
       });
 
       // Handle successful response
       console.log('Response received:', response.data);
-      setMessage(response.data.message);
+      setMessage(response.data.message);  // Set the login success message
       setSpecialLink(response.data.link);  // Store the special link if login is successful
     } catch (error) {
       console.error('Error during login:', error);
       if (error.response) {
-        setMessage(error.response.data.error);
+        setMessage(error.response.data.error);  // Set error message from the server
       } else {
-        setMessage('An error occurred. Please try again.');
+        setMessage('An error occurred. Please try again.');  // Generic error message
       }
     }
   };
 
+  // Handler to add balance
   const handleAddBalance = () => {
     const dollarValue = prompt("Enter a dollar value:");
     if (dollarValue) {
       const formattedBalance = `$${parseFloat(dollarValue).toFixed(2)}`; 
-      setBalance(`$${parseFloat(dollarValue).toFixed(2)}`);  // Format as a dollar value
-      localStorage.setItem('balance', formattedBalance); //Save
+      setBalance(formattedBalance);  // Format as a dollar value
+      localStorage.setItem('balance', formattedBalance); // Save to localStorage
     }
   };
 
@@ -98,9 +107,11 @@ function About() {
       {specialLink && (
         <div>
           <h2>Account Information</h2>
-          <a href={specialLink} target="_blank" rel="noopener noreferrer">Account Configuration</a>
+          <a href={"https://connect2.finicity.com?customerId=7033710983&origin=url&partnerId=2445584660402&signature=e4ce3550817937e036d931a1a7e11ec44810ac930a544c621eb3c69559f75d2a&timestamp=1729441455212&ttl=1729448655212"} target="_blank" rel="noopener noreferrer">Account Configuration</a>
         </div>
       )}
+
+      {/* Add Balance Button if Link is Present */}
       {specialLink && (
         <div>
           <button onClick={handleAddBalance}>Add Balance</button>
