@@ -8,64 +8,92 @@ import { OutlinePass } from 'three/examples/jsm/postprocessing/OutlinePass';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass';
 import { FXAAShader } from 'three/examples/jsm/shaders/FXAAShader';
 import { VRButton } from 'three/examples/jsm/webxr/VRButton';
-import { XRControllerModelFactory } from 'three/examples/jsm/webxr/XRControllerModelFactory'; // Optional for controller models
 
 const VISIBLE_COUNT = 4; // Number of clothes visible at once
 
 function Thrift({ addToCart }) {
-    // ... existing state and refs
+    const [clothes, setClothes] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [windowStart, setWindowStart] = useState(0); // Start index of the current window
+    const mountRef = useRef(null);
+    const sceneRef = useRef(null);
+    const objectsRef = useRef([]); // Currently loaded and visible objects
+    const groupRef = useRef(new THREE.Group()); // Group to contain visible clothes
+    const cameraGroupRef = useRef(new THREE.Group()); // Group to hold the camera
 
-    // Additional refs for UI buttons
-    const cameraGroupRef = useRef(new THREE.Group());
-    const uiGroupRef = useRef(new THREE.Group());
+    // For interactivity
+    const raycaster = useRef(new THREE.Raycaster());
+    const mouse = useRef(new THREE.Vector2());
+    const hoveredObject = useRef(null);
+    const composer = useRef(null);
+    const outlinePass = useRef(null);
 
-    // ... existing useEffect for fetching clothes
+    // Cache for loaded models to prevent reloading
+    const modelCache = useRef({});
 
-    // Function to create a 3D button
-    const createButton = (label) => {
-        const buttonWidth = 5;
-        const buttonHeight = 2.5;
-        
-        // Create geometry for the button
-        const geometry = new THREE.PlaneGeometry(buttonWidth, buttonHeight);
-        
-        // Create a canvas to draw the button label
-        const canvas = document.createElement('canvas');
-        canvas.width = 256;
-        canvas.height = 128;
-        const context = canvas.getContext('2d');
-        
-        // Background
-        context.fillStyle = '#ffffff';
-        context.fillRect(0, 0, canvas.width, canvas.height);
-        
-        // Text
-        context.fillStyle = '#000000';
-        context.font = '48px Arial';
-        context.textAlign = 'center';
-        context.textBaseline = 'middle';
-        context.fillText(label, canvas.width / 2, canvas.height / 2);
-        
-        // Create texture from canvas
-        const texture = new THREE.CanvasTexture(canvas);
-        
-        // Create material
-        const material = new THREE.MeshBasicMaterial({ map: texture, transparent: true });
-        
-        // Create mesh
-        const button = new THREE.Mesh(geometry, material);
-        
-        // Enable casting shadows if needed
-        button.castShadow = true;
-        button.receiveShadow = true;
-        
-        // Enable interaction by setting a name or userData
-        button.name = `${label}Button`;
-        
-        return button;
+    // VR detection state
+    const [isVR, setIsVR] = useState(false);
+
+    // Define fixed positions along the cylinder (adjust as needed)
+    const fixedPositions = [
+        { position: new THREE.Vector3(-25, -10, 4), rotation: new THREE.Euler(0, Math.PI / 4, 0) },
+        { position: new THREE.Vector3(-10, -10, 4), rotation: new THREE.Euler(0, Math.PI / 4, 0) },
+        { position: new THREE.Vector3(5, -10, 4), rotation: new THREE.Euler(0, Math.PI / 4, 0) },
+        { position: new THREE.Vector3(20, -10, 4), rotation: new THREE.Euler(0, Math.PI / 4, 0) },
+    ];
+
+    // Fetch clothes data from the backend
+    useEffect(() => {
+        fetch('https://hackwashu24.onrender.com/getClothes')
+            .then(response => response.json())
+            .then(data => {
+                setClothes(data.clothes);
+                setLoading(false);
+
+                // Preload all models after data is fetched
+                data.clothes.forEach((_, index) => {
+                    preloadModel(index);
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching clothes:', error);
+                setLoading(false); // Stop loading if fetch fails
+            });
+    }, []);
+
+    const preloadModel = (index) => {
+        const item = clothes[index];
+        const modelPath = 'https://hackwashu24.onrender.com/3Doutput/' + item.photo_filename;
+
+        // Only preload if it's not already in the cache
+        if (!modelCache.current[modelPath]) {
+            const loader = new OBJLoader();
+            loader.load(
+                modelPath,
+                (object) => {
+                    const box = new THREE.Box3().setFromObject(object);
+                    const objectHeight = box.max.y - box.min.y;
+                    const desiredHeight = 10;
+                    const scaleFactor = desiredHeight / objectHeight;
+                    object.scale.set(scaleFactor, scaleFactor, scaleFactor);
+
+                    object.traverse((child) => {
+                        if (child.isMesh) {
+                            child.material.side = THREE.DoubleSide;
+                            child.userData = { item };
+                        }
+                    });
+
+                    // Cache the loaded model
+                    modelCache.current[modelPath] = object.clone();
+                },
+                undefined,
+                (error) => console.error(`Error preloading model ${modelPath}:`, error)
+            );
+        }
     };
 
-    // Initialize Three.js scene, camera, renderer, lights, controls, post-processing, and UI buttons
+    // Initialize Three.js scene, camera, renderer, lights, controls, and post-processing
     useEffect(() => {
         if (clothes.length === 0) return;
 
@@ -106,23 +134,21 @@ function Thrift({ addToCart }) {
         document.body.appendChild(VRButton.createButton(renderer));
 
         // Initialize EffectComposer for post-processing (OutlinePass)
-        const composer = new EffectComposer(renderer);
-        composer.current = composer;
-        composer.addPass(new RenderPass(scene, camera));
+        composer.current = new EffectComposer(renderer);
+        composer.current.addPass(new RenderPass(scene, camera));
 
         // OutlinePass parameters: scene, camera, selected objects
-        const outlinePass = new OutlinePass(
+        outlinePass.current = new OutlinePass(
             new THREE.Vector2(mountRef.current.clientWidth, mountRef.current.clientHeight),
             scene,
             camera
         );
-        outlinePass.edgeStrength = 3.0;
-        outlinePass.edgeGlow = 0.0;
-        outlinePass.edgeThickness = 1.0;
-        outlinePass.visibleEdgeColor.set('#ffffff'); // Color of the outline
-        outlinePass.hiddenEdgeColor.set('#190a05'); // Color for hidden edges
-        composer.addPass(outlinePass);
-        composer.current = composer; // Update the ref
+        outlinePass.current.edgeStrength = 3.0;
+        outlinePass.current.edgeGlow = 0.0;
+        outlinePass.current.edgeThickness = 1.0;
+        outlinePass.current.visibleEdgeColor.set('#ffffff'); // Color of the outline
+        outlinePass.current.hiddenEdgeColor.set('#190a05'); // Color for hidden edges
+        composer.current.addPass(outlinePass.current);
 
         // Add FXAA anti-aliasing
         const fxaaPass = new ShaderPass(FXAAShader);
@@ -130,7 +156,7 @@ function Thrift({ addToCart }) {
             1 / mountRef.current.clientWidth,
             1 / mountRef.current.clientHeight
         );
-        composer.addPass(fxaaPass);
+        composer.current.addPass(fxaaPass);
 
         // Add ambient and directional light
         const ambientLight = new THREE.AmbientLight(0xffffff, 1.5);
@@ -266,36 +292,19 @@ function Thrift({ addToCart }) {
         // Add the group containing clothes to the scene
         scene.add(groupRef.current);
 
-        // === Create and Add UI Buttons to the Scene ===
-        const leftButton = createButton('<');
-        const rightButton = createButton('>');
-
-        // Adjust button sizes if necessary
-        leftButton.scale.set(2, 1, 1);
-        rightButton.scale.set(2, 1, 1);
-
-        // Position the buttons within the UI group
-        leftButton.position.set(-3, 0, 0); // Left button to the left
-        rightButton.position.set(3, 0, 0); // Right button to the right
-
-        // Add buttons to the UI group
-        uiGroupRef.current.add(leftButton);
-        uiGroupRef.current.add(rightButton);
-        cameraGroup.add(uiGroupRef.current); // Ensure UI is part of the camera group
-
-        // === Add OrbitControls for non-VR interaction ===
+        // Add OrbitControls for non-VR interaction
         const controls = new OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true; // for smoother controls
         controls.target.set(20, -5, 0);  // Point the controls at the origin of the scene
         controls.update();
 
-        // === Handle window resize ===
+        // Handle window resize
         const handleResize = () => {
             if (mountRef.current) {
                 const width = mountRef.current.clientWidth;
                 const height = mountRef.current.clientHeight;
                 renderer.setSize(width, height);
-                composer.setSize(width, height);
+                composer.current.setSize(width, height);
                 camera.aspect = width / height;
                 camera.updateProjectionMatrix();
 
@@ -305,7 +314,7 @@ function Thrift({ addToCart }) {
         };
         window.addEventListener('resize', handleResize);
 
-        // === Mouse move and click handlers for non-VR ===
+        // Mouse move and click handlers
         const onMouseMove = (event) => {
             const rect = renderer.domElement.getBoundingClientRect();
             mouse.current.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
@@ -325,7 +334,7 @@ function Thrift({ addToCart }) {
         renderer.domElement.addEventListener('mousemove', onMouseMove);
         renderer.domElement.addEventListener('click', onClick);
 
-        // === VR Controllers Setup ===
+        // === VR Camera Movement Setup ===
 
         // Initialize controllers
         const controller1 = renderer.xr.getController(0);
@@ -333,18 +342,7 @@ function Thrift({ addToCart }) {
         scene.add(controller1);
         scene.add(controller2);
 
-        // Optional: Add controller models for better visualization
-        const controllerModelFactory = new XRControllerModelFactory();
-
-        const controllerGrip1 = renderer.xr.getControllerGrip(0);
-        controllerGrip1.add(controllerModelFactory.createControllerModel(controllerGrip1));
-        scene.add(controllerGrip1);
-
-        const controllerGrip2 = renderer.xr.getControllerGrip(1);
-        controllerGrip2.add(controllerModelFactory.createControllerModel(controllerGrip2));
-        scene.add(controllerGrip2);
-
-        // Function to handle controller input for movement and button clicks
+        // Function to handle controller input for movement
         const handleControllerInput = () => {
             const session = renderer.xr.getSession();
             if (!session) return;
@@ -374,47 +372,12 @@ function Thrift({ addToCart }) {
             controls.enabled = true; // Re-enable OrbitControls when exiting VR
         });
 
-        // === Add Event Listeners for VR Buttons ===
-
-        // Listen for controller 'select' events
-        controller1.addEventListener('select', onSelect);
-        controller2.addEventListener('select', onSelect);
-
-        // Define the onSelect function
-        function onSelect(event) {
-            const controller = event.target;
-            
-            // Update the raycaster based on the controller's position and direction
-            const tempMatrix = new THREE.Matrix4();
-            controller.updateMatrixWorld();
-            tempMatrix.extractRotation(controller.matrixWorld);
-            
-            // Create a direction vector pointing forward from the controller
-            const direction = new THREE.Vector3(0, 0, -1).applyMatrix4(tempMatrix).normalize();
-            
-            // Set the raycaster origin to the controller's position
-            raycaster.set(controller.position, direction);
-            
-            // Calculate intersections with buttons
-            const intersects = raycaster.intersectObjects([leftButton, rightButton], true);
-            
-            if (intersects.length > 0) {
-                const intersected = intersects[0].object;
-                
-                if (intersected.name === 'leftButton') {
-                    handleArrowClick('left');
-                } else if (intersected.name === 'rightButton') {
-                    handleArrowClick('right');
-                }
-            }
-        }
-
-        // === Animation Loop ===
+        // Animation loop
         const animate = () => {
             renderer.setAnimationLoop(() => {
-                // Update Raycaster for non-VR hover detection
-                raycaster.setFromCamera(mouse.current, camera);
-                const intersects = raycaster.intersectObjects(groupRef.current.children, true); // Only intersect with clothes
+                // Update Raycaster
+                raycaster.current.setFromCamera(mouse.current, camera);
+                const intersects = raycaster.current.intersectObjects(groupRef.current.children, true); // Only intersect with clothes
 
                 if (intersects.length > 0) {
                     // Find the first intersected object that has userData.item
@@ -422,15 +385,15 @@ function Thrift({ addToCart }) {
                     if (intersected) {
                         if (hoveredObject.current !== intersected.object) {
                             hoveredObject.current = intersected.object;
-                            outlinePass.selectedObjects = [intersected.object];
+                            outlinePass.current.selectedObjects = [intersected.object];
                         }
                     } else {
                         hoveredObject.current = null;
-                        outlinePass.selectedObjects = [];
+                        outlinePass.current.selectedObjects = [];
                     }
                 } else {
                     hoveredObject.current = null;
-                    outlinePass.selectedObjects = [];
+                    outlinePass.current.selectedObjects = [];
                 }
 
                 if (isVR) {
@@ -445,7 +408,7 @@ function Thrift({ addToCart }) {
                 if (renderer.xr.isPresenting) {
                     renderer.render(scene, camera);
                 } else {
-                    composer.render();
+                    composer.current.render();
                 }
             });
         };
@@ -470,21 +433,6 @@ function Thrift({ addToCart }) {
             renderer.dispose();
         };
     }, [clothes]); // Only run when clothes data changes
-
-    // ... existing functions for loading models, handling arrows, etc.
-
-    // Function to handle arrow button clicks
-    const handleArrowClick = (direction) => {
-        if (clothes.length === 0) return;
-
-        if (direction === 'left') {
-            // Move window forward
-            setWindowStart((prevStart) => (prevStart + 1) % clothes.length);
-        } else if (direction === 'right') {
-            // Move window backward
-            setWindowStart((prevStart) => (prevStart - 1 + clothes.length) % clothes.length);
-        }
-    };
 
     // Function to load a single model
     const loadModel = (index) => {
@@ -582,6 +530,19 @@ function Thrift({ addToCart }) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [windowStart, clothes]);
 
+    // Handler for arrow button clicks
+    const handleArrowClick = (direction) => {
+        if (clothes.length === 0) return;
+
+        if (direction === 'left') {
+            // Move window forward
+            setWindowStart((prevStart) => (prevStart + 1) % clothes.length);
+        } else if (direction === 'right') {
+            // Move window backward
+            setWindowStart((prevStart) => (prevStart - 1 + clothes.length) % clothes.length);
+        }
+    };
+
     return (
         <div style={{ color: 'white', backgroundColor: '#121212', minHeight: '80vh', width: '100%', position: 'relative' }}>
 
@@ -613,7 +574,7 @@ function Thrift({ addToCart }) {
                         Loading...
                     </div>
                 )}
-                {/* Left and Right Arrow Buttons for non-VR mode (optional) */}
+                {/* Left and Right Arrow Buttons */}
                 <button
                     style={{
                         position: 'absolute',
