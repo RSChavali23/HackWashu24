@@ -48,12 +48,49 @@ function Thrift({ addToCart }) {
             .then(data => {
                 setClothes(data.clothes);
                 setLoading(false);
+    
+                // Preload all models after data is fetched
+                data.clothes.forEach((_, index) => {
+                    preloadModel(index);
+                });
             })
             .catch(error => {
                 console.error('Error fetching clothes:', error);
                 setLoading(false); // Stop loading if fetch fails
             });
     }, []);
+
+    const preloadModel = (index) => {
+        const item = clothes[index];
+        const modelPath = 'https://hackwashu24.onrender.com/3Doutput/' + item.photo_filename;
+    
+        // Only preload if it's not already in the cache
+        if (!modelCache.current[modelPath]) {
+            const loader = new OBJLoader();
+            loader.load(
+                modelPath,
+                (object) => {
+                    const box = new THREE.Box3().setFromObject(object);
+                    const objectHeight = box.max.y - box.min.y;
+                    const desiredHeight = 10;
+                    const scaleFactor = desiredHeight / objectHeight;
+                    object.scale.set(scaleFactor, scaleFactor, scaleFactor);
+    
+                    object.traverse((child) => {
+                        if (child.isMesh) {
+                            child.material.side = THREE.DoubleSide;
+                            child.userData = { item };
+                        }
+                    });
+    
+                    // Cache the loaded model
+                    modelCache.current[modelPath] = object.clone();
+                },
+                undefined,
+                (error) => console.error(`Error preloading model ${modelPath}:`, error)
+            );
+        }
+    };
 
         // Inside your Thrift component, before the useEffect hooks
     const createFloor = () => {
@@ -276,6 +313,7 @@ function Thrift({ addToCart }) {
                 const item = hoveredObject.current.userData.item;
                 // Add the clicked item to the cart
                 addToCart(item);
+                alert(`Added ${item.type} to cart!`);
  
             }
         };
@@ -383,7 +421,7 @@ function Thrift({ addToCart }) {
 
     // Function to add models to the scene based on the current window
     const loadVisibleModels = async () => {
-        setLoading(true);
+     
         // Remove existing objects from the scene
         objectsRef.current.forEach(obj => {
             groupRef.current.remove(obj);
