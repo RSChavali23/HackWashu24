@@ -178,18 +178,13 @@ function Thrift({ addToCart }) {
             // Offset the reference space (moves user starting position)
             const session = renderer.xr.getSession();
             const refSpace = renderer.xr.getReferenceSpace();
+            const vrCamera = renderer.xr.getCamera(camera);
+
+            renderer.xr.updateCamera(camera);
+            
         
-            const offset = new XRRigidTransform({
-                x: 15,    // Adjust X to shift left/right
-                y: -2,    // Adjust Y to shift height
-                z: 30     // Adjust Z to shift forward/backward
-            });
-        
-            const offsetRefSpace = refSpace.getOffsetReferenceSpace(offset);
-            session.updateRenderState({ baseLayer: session.renderState.baseLayer });
-            session.requestReferenceSpace('local').then((space) => {
-                renderer.xr.setReferenceSpace(offsetRefSpace);
-            });
+         
+           
         });
 
         renderer.xr.addEventListener('sessionend', () => {
