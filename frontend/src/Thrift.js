@@ -9,7 +9,7 @@ import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass';
 import { FXAAShader } from 'three/examples/jsm/shaders/FXAAShader';
 import gsap from 'gsap';
 import { Alert } from 'react-bootstrap';
-
+import { VRButton } from 'three/examples/jsm/webxr/VRButton';
 
 
 const VISIBLE_COUNT = 4; // Number of clothes visible at once
@@ -32,6 +32,9 @@ function Thrift({ addToCart }) {
 
     // Cache for loaded models to prevent reloading
     const modelCache = useRef({});
+
+    // VR detection state
+    const [isVR, setIsVR] = useState(false);
 
     // Define fixed positions along the cylinder (adjust as needed)
     const fixedPositions = [
@@ -163,6 +166,22 @@ function Thrift({ addToCart }) {
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(mountRef.current.clientWidth, mountRef.current.clientHeight);
         mountRef.current.appendChild(renderer.domElement);
+
+        // Enable WebXR for VR rendering
+        renderer.xr.enabled = true;
+        document.body.appendChild(VRButton.createButton(renderer));
+
+        // Detect VR user and place them in the center of the scene
+        renderer.xr.addEventListener('sessionstart', () => {
+            setIsVR(true);
+            camera.position.set(0, 0, 0); // Place the VR user at the center of the scene
+        });
+
+        renderer.xr.addEventListener('sessionend', () => {
+            setIsVR(false);
+        });
+
+
 
         // Initialize EffectComposer for post-processing (OutlinePass)
         composer.current = new EffectComposer(renderer);
