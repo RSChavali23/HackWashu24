@@ -33,7 +33,7 @@ function App() {
     <Router>
       <div className="App" style={{ width: '100vw' }}>
         <Navbar cartItems={cartItems} removeFromCart={removeFromCart} balance={balance} />
-        <div className="App-header" style={{ width: '100%' }}>
+        <div className="App-header" style={{ width: '100%', }}>
           <Routes>
             <Route path="/test" element={<Test />} />
             <Route path="/" element={<Home />} />

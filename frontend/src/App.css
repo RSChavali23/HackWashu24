@@ -78,9 +78,9 @@ nav ul li a:hover {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  background-color: #ffffff;
+  background-color: #dbd9d9;
   padding: 8px;
-  border-radius: 12px;
+  border-radius: 0;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
 }
 
