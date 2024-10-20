@@ -1,0 +1,15 @@
+services:
+- type: web
+  name: full-stack-app
+  env: python
+  buildCommand: 
+      cd frontend
+      npm install
+      npm run build
+      cd ../backend
+      pip install -r requirements.txt
+  runCommand: gunicorn --bind 0.0.0.0:8000 app:app
+  envVars:
+      - key: MONGO_URI
+        value: "mongodb+srv://rahulchavali1:Ec1rg2VHXzPdIFYX@cluster0.xiwbg.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+  plan: free
