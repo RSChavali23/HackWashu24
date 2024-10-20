@@ -1,10 +1,11 @@
 from flask import Flask, jsonify, request
-from mongodb_handler import save_clothes
+from mongodb_handler import save_clothes, get_all_clothes  # Import the save_clothes and get_clothes functions
 import os
 import subprocess
 from werkzeug.utils import secure_filename
 import traceback  # Add this import for detailed error reporting
 from flask_cors import CORS  # Import CORS
+from flask import send_from_directory
 
 app = Flask(__name__)
 # Enable CORS for all routes
@@ -13,6 +14,17 @@ CORS(app)
 UPLOAD_FOLDER = './uploads'
 OUTPUT_FOLDER = './output'
 THREED_FOLDER = './3Doutput'
+
+@app.route('/getClothes', methods=['GET'])
+def get_clothes():
+    try:
+        # Fetch all clothes from MongoDB
+        clothes = get_all_clothes()  # Assuming `get_all_clothes()` is defined in mongodb_handler.py
+        return jsonify({"clothes": clothes}), 200
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({"error": f"An error occurred: {str(e)}"}), 500
+    
 
 @app.route('/uploadClothes', methods=['POST'])
 def upload_clothes():
@@ -85,7 +97,26 @@ def upload_clothes():
         return jsonify({"error": f"An unexpected error occurred: {str(e)}"}), 500
 
 
+# Serve files from OUTPUT_FOLDER
+@app.route('/output/<path:filename>', methods=['GET'])
+def serve_output_file(filename):
+    try:
+        filepath = filename + "_final.png"
+        print(f"Requested file: {filepath}")
+        print(f"File path: {os.path.join(OUTPUT_FOLDER, filepath )}")
+        return send_from_directory(OUTPUT_FOLDER, filepath)
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({"error": f"Error serving file: {str(e)}"}), 500
 
+# Serve files from THREED_FOLDER
+@app.route('/3Doutput/<path:filename>', methods=['GET'])
+def serve_threed_file(filename):
+    try:
+        return send_from_directory(THREED_FOLDER, filename + ".obj")
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({"error": f"Error serving file: {str(e)}"}), 500
 
 @app.route('/api')
 def hello_world():
