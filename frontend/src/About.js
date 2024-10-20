@@ -1,5 +1,3 @@
-// frontend/src/components/About.js
-
 import React, { useState } from 'react';
 import axios from 'axios';
 
@@ -41,7 +39,9 @@ function About() {
   const handleAddBalance = () => {
     const dollarValue = prompt("Enter a dollar value:");
     if (dollarValue) {
+      const formattedBalance = `$${parseFloat(dollarValue).toFixed(2)}`; 
       setBalance(`$${parseFloat(dollarValue).toFixed(2)}`);  // Format as a dollar value
+      localStorage.setItem('balance', formattedBalance); //Save
     }
   };
 
@@ -49,7 +49,15 @@ function About() {
     <div>
       {/* Display Balance on the top left if available */}
       {balance && (
-        <div style={{ position: 'absolute', top: '150px', left: '10px', color: 'white' }}>
+        <div style={{ 
+          position: 'absolute', 
+          top: '150px', 
+          left: '10px', 
+          color: 'white', 
+          backgroundColor: '#333333', /* Background color behind the balance */
+          padding: '10px',            /* Add padding for spacing */
+          borderRadius: '8px'         /* Rounded corners */
+        }}>
           <h3>Balance: {balance}</h3>
         </div>
       )}
