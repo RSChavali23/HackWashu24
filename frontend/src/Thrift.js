@@ -343,32 +343,39 @@ function Thrift({ addToCart }) {
 
         // Animation loop
         const animate = () => {
-            requestAnimationFrame(animate);
-
-            // Update Raycaster
-            raycaster.current.setFromCamera(mouse.current, camera);
-            const intersects = raycaster.current.intersectObjects(groupRef.current.children, true); // Only intersect with clothes
-
-            if (intersects.length > 0) {
-                // Find the first intersected object that has userData.item
-                const intersected = intersects.find(intersect => intersect.object.userData.item);
-                if (intersected) {
-                    if (hoveredObject.current !== intersected.object) {
-                        hoveredObject.current = intersected.object;
-                        outlinePass.current.selectedObjects = [intersected.object];
+            renderer.setAnimationLoop(() => {
+                // Update Raycaster
+                raycaster.current.setFromCamera(mouse.current, camera);
+                const intersects = raycaster.current.intersectObjects(groupRef.current.children, true); // Only intersect with clothes
+        
+                if (intersects.length > 0) {
+                    // Find the first intersected object that has userData.item
+                    const intersected = intersects.find(intersect => intersect.object.userData.item);
+                    if (intersected) {
+                        if (hoveredObject.current !== intersected.object) {
+                            hoveredObject.current = intersected.object;
+                            outlinePass.current.selectedObjects = [intersected.object];
+                        }
+                    } else {
+                        hoveredObject.current = null;
+                        outlinePass.current.selectedObjects = [];
                     }
                 } else {
                     hoveredObject.current = null;
                     outlinePass.current.selectedObjects = [];
                 }
-            } else {
-                hoveredObject.current = null;
-                outlinePass.current.selectedObjects = [];
-            }
-
-            controls.update(); // only required if controls.enableDamping = true
-            composer.current.render();
+        
+                // Update controls (if not in VR mode)
+                if (!renderer.xr.isPresenting) {
+                    controls.update(); // Only required if controls.enableDamping = true
+                }
+        
+                // Render the scene using the composer (with post-processing)
+                composer.current.render();
+            });
         };
+
+        
         animate();
 
         // Clean up on component unmount
