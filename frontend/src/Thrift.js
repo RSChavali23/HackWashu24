@@ -29,6 +29,7 @@ function Thrift({ addToCart }) {
     const hoveredObject = useRef(null);
     const composer = useRef(null);
     const outlinePass = useRef(null);
+    const cameraGroupRef = useRef(new THREE.Group());
 
     // Cache for loaded models to prevent reloading
     const modelCache = useRef({});
@@ -161,6 +162,12 @@ function Thrift({ addToCart }) {
             1000
         );
         camera.position.set(30, -2, 15); // Adjusted for better initial view
+
+        // Create a group to hold the camera
+        const cameraGroup = new THREE.Group();
+        cameraGroup.add(camera);
+        scene.add(cameraGroup);
+        cameraGroupRef.current = cameraGroup;
 
         // Initialize renderer
         const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -307,7 +314,11 @@ function Thrift({ addToCart }) {
         // Add the group to the scene
         scene.add(groupRef.current);
 
-        // Add OrbitControls for better interaction
+  
+
+        scene.add(groupRef.current);
+
+        // Add OrbitControls for non-VR interaction
         const controls = new OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true; // for smoother controls
         controls.target.set(20, -5, 0);  // Point the controls at the origin of the scene
@@ -329,21 +340,19 @@ function Thrift({ addToCart }) {
         };
         window.addEventListener('resize', handleResize);
 
-        // Mouse move handler
+        // Mouse move and click handlers
         const onMouseMove = (event) => {
             const rect = renderer.domElement.getBoundingClientRect();
             mouse.current.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
             mouse.current.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
         };
 
-        // Click handler
         const onClick = (event) => {
             if (hoveredObject.current) {
                 const item = hoveredObject.current.userData.item;
                 // Add the clicked item to the cart
                 addToCart(item);
                 alert(`Added ${item.type} to cart!`);
- 
             }
         };
 
@@ -351,13 +360,63 @@ function Thrift({ addToCart }) {
         renderer.domElement.addEventListener('mousemove', onMouseMove);
         renderer.domElement.addEventListener('click', onClick);
 
+        // === VR Camera Movement Setup ===
+
+        // Initialize controllers
+        const controller1 = renderer.xr.getController(0);
+        const controller2 = renderer.xr.getController(1);
+        scene.add(controller1);
+        scene.add(controller2);
+
+        // If adding controller models
+        /*
+        const controllerModelFactory = new XRControllerModelFactory();
+
+        [controller1, controller2].forEach((controller) => {
+            controller.addEventListener('connected', (event) => {
+                const mesh = controllerModelFactory.createControllerModel(controller);
+                controller.add(mesh);
+            });
+        });
+        */
+
+        // Function to handle controller input for movement
+        const handleControllerInput = () => {
+            const session = renderer.xr.getSession();
+            if (!session) return;
+
+            const inputSources = session.inputSources;
+            inputSources.forEach((input) => {
+                if (input.gamepad) {
+                    const gp = input.gamepad;
+                    const axes = gp.axes;
+
+                    // Example: axes[0] for left/right, axes[1] for forward/back
+                    const movementSpeed = 0.1;
+                    cameraGroup.position.x += axes[0] * movementSpeed;
+                    cameraGroup.position.z += axes[1] * movementSpeed;
+                }
+            });
+        };
+
+        // VR session event listeners
+        renderer.xr.addEventListener('sessionstart', () => {
+            setIsVR(true);
+            controls.enabled = false; // Disable OrbitControls in VR
+        });
+
+        renderer.xr.addEventListener('sessionend', () => {
+            setIsVR(false);
+            controls.enabled = true; // Re-enable OrbitControls when exiting VR
+        });
+
         // Animation loop
         const animate = () => {
             renderer.setAnimationLoop(() => {
                 // Update Raycaster
                 raycaster.current.setFromCamera(mouse.current, camera);
                 const intersects = raycaster.current.intersectObjects(groupRef.current.children, true); // Only intersect with clothes
-        
+
                 if (intersects.length > 0) {
                     // Find the first intersected object that has userData.item
                     const intersected = intersects.find(intersect => intersect.object.userData.item);
@@ -374,24 +433,23 @@ function Thrift({ addToCart }) {
                     hoveredObject.current = null;
                     outlinePass.current.selectedObjects = [];
                 }
-        
-                // Update controls (if not in VR mode)
-                if (!renderer.xr.isPresenting) {
-                    controls.update(); // Only required if controls.enableDamping = true
+
+                if (isVR) {
+                    // Handle VR movement inputs
+                    handleControllerInput();
+                } else {
+                    // Update OrbitControls when not in VR
+                    controls.update();
                 }
-        
-                // Render the scene:
+
+                // Render the scene
                 if (renderer.xr.isPresenting) {
-                    // Render normally for VR mode
                     renderer.render(scene, camera);
                 } else {
-                    // Use post-processing effects when not in VR
                     composer.current.render();
                 }
             });
         };
-        
-
 
         animate();
 
